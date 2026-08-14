@@ -174,20 +174,20 @@ export default function WegEconomy() {
       {tab === 'labor' && (
         <div className="space-y-5">
           {/* AI JOB MARKET 总览 */}
-          <div className="overflow-hidden rounded-xl bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 p-5 text-white shadow-md ring-1 ring-slate-800">
+          <div className="overflow-hidden rounded-xl bg-gradient-to-br from-white via-sky-50/60 to-indigo-50/60 p-5 shadow-sm ring-1 ring-market-border/60">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-black tracking-tight">AI JOB MARKET</span>
-                  <span className="rounded bg-white/15 px-2 py-0.5 text-[10px] font-bold">全球 AI Agent 劳动力市场</span>
+                  <span className="text-lg font-black tracking-tight text-market-text">AI JOB MARKET</span>
+                  <span className="rounded bg-market-primary/10 px-2 py-0.5 text-[10px] font-bold text-market-primary">全球 AI Agent 劳动力市场</span>
                 </div>
-                <p className="mt-1 text-xs text-slate-300">发布任务 → 系统自动拆解 → 匹配 Agent → 完成交付</p>
+                <p className="mt-1 text-xs text-market-sub">发布任务 → 系统自动拆解 → 匹配 Agent → 完成交付</p>
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <DarkStat label="今日任务" value={fmtCompact(LABOR_MARKET_STATS.dailyTasks)} />
-                <DarkStat label="在线 Agent" value={fmtCompact(LABOR_MARKET_STATS.onlineAgents)} />
-                <DarkStat label="已完成任务" value={fmtCompact(LABOR_MARKET_STATS.completedTasks)} />
-                <DarkStat label="AI 劳动价值" value={`$${laborValueM}M`} accent />
+                <JStat label="今日任务" value={fmtCompact(LABOR_MARKET_STATS.dailyTasks)} />
+                <JStat label="在线 Agent" value={fmtCompact(LABOR_MARKET_STATS.onlineAgents)} />
+                <JStat label="已完成任务" value={fmtCompact(LABOR_MARKET_STATS.completedTasks)} />
+                <JStat label="AI 劳动价值" value={`$${laborValueM}M`} accent />
               </div>
             </div>
           </div>
@@ -296,7 +296,7 @@ export default function WegEconomy() {
                   className="flex flex-col rounded-xl bg-white p-5 shadow-sm ring-1 ring-market-border/60 transition-shadow hover:shadow-md"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="rounded-md bg-slate-900 px-2 py-1 font-mono text-[11px] font-bold text-white">
+                    <span className="rounded-md bg-market-primary/10 px-2 py-1 font-mono text-[11px] font-bold text-market-primary">
                       {task.symbol}
                     </span>
                     <span className="rounded bg-market-bg px-2 py-0.5 text-[10px] font-semibold text-market-sub">
@@ -403,23 +403,23 @@ export default function WegEconomy() {
       {tab === 'wage' && (
         <div className="space-y-5">
           {/* AI LABOR INDEX */}
-          <div className="overflow-hidden rounded-xl bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-900 p-6 text-white shadow-md ring-1 ring-slate-800">
+          <div className="overflow-hidden rounded-xl bg-gradient-to-br from-white via-indigo-50/60 to-white p-6 shadow-sm ring-1 ring-market-border/60">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <div className="text-xs font-semibold uppercase tracking-widest text-indigo-300">AI Labor Index</div>
+                <div className="text-xs font-semibold uppercase tracking-widest text-indigo-500">AI Labor Index</div>
                 <div className="mt-1 flex items-end gap-3">
-                  <span className="font-mono text-4xl font-black tracking-tight">{AI_LABOR_INDEX.name}</span>
-                  <span className="mb-1 font-mono text-3xl font-black text-white">{AI_LABOR_INDEX.value}</span>
-                  <span className="mb-1.5 rounded-md bg-emerald-500/20 px-2 py-0.5 font-mono text-sm font-bold text-emerald-300 ring-1 ring-emerald-400/40">
+                  <span className="font-mono text-4xl font-black tracking-tight text-market-text">{AI_LABOR_INDEX.name}</span>
+                  <span className="mb-1 font-mono text-3xl font-black text-market-text">{AI_LABOR_INDEX.value}</span>
+                  <span className="mb-1.5 rounded-md bg-emerald-100 px-2 py-0.5 font-mono text-sm font-bold text-emerald-700 ring-1 ring-emerald-200">
                     ▲ +{AI_LABOR_INDEX.change}%
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-slate-400">AI 工资指数 · 衡量各职业 Agent 的劳动价格变化</p>
+                <p className="mt-1 text-xs text-market-sub">AI 工资指数 · 衡量各职业 Agent 的劳动价格变化</p>
               </div>
             </div>
-            <div className="mt-4 overflow-hidden rounded-lg bg-white/5 ring-1 ring-white/10">
+            <div className="mt-4 overflow-hidden rounded-lg ring-1 ring-market-border/60">
               <table className="w-full text-sm">
-                <thead className="bg-white/5 text-left text-xs text-slate-300">
+                <thead className="bg-market-bg/60 text-left text-xs text-market-sub">
                   <tr>
                     <th className="px-4 py-2 font-semibold">职业</th>
                     <th className="px-4 py-2 text-right font-semibold">AI 劳动价格</th>
@@ -428,14 +428,14 @@ export default function WegEconomy() {
                 </thead>
                 <tbody>
                   {LABOR_OCCUPATIONS.map((o) => (
-                    <tr key={o.id} className="border-t border-white/10">
-                      <td className="px-4 py-2.5 font-medium text-white">
+                    <tr key={o.id} className="border-t border-market-border">
+                      <td className="px-4 py-2.5 font-medium text-market-text">
                         {o.icon} {o.name}
                       </td>
-                      <td className="px-4 py-2.5 text-right font-mono font-semibold text-white">${o.price.toFixed(1)}</td>
+                      <td className="px-4 py-2.5 text-right font-mono font-semibold text-market-text">${o.price.toFixed(1)}</td>
                       <td
                         className={`px-4 py-2.5 text-right font-mono font-semibold ${
-                          o.change24h >= 0 ? 'text-emerald-300' : 'text-rose-400'
+                          o.change24h >= 0 ? 'text-emerald-600' : 'text-rose-600'
                         }`}
                       >
                         {o.change24h >= 0 ? '+' : ''}
@@ -578,10 +578,10 @@ export default function WegEconomy() {
               <span className="text-xs text-market-sub">示例：用户发布「创建英语教育产品」，AI 公司自动组队完成</span>
             </div>
 
-            <div className="mb-3 rounded-lg bg-slate-900 p-4 text-white">
-              <div className="flex items-center justify-between text-xs text-slate-300">
+            <div className="mb-3 rounded-lg bg-market-bg p-4">
+              <div className="flex items-center justify-between text-xs text-market-sub">
                 <span>项目收入</span>
-                <span className="font-mono text-base font-bold text-white">$10,000</span>
+                <span className="font-mono text-base font-bold text-market-text">$10,000</span>
               </div>
               <div className="mt-2 flex h-3 w-full overflow-hidden rounded-full">
                 {AI_COMPANY_ROLES.map((r, i) => (
@@ -594,12 +594,12 @@ export default function WegEconomy() {
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
                 {AI_COMPANY_ROLES.map((r) => (
-                  <div key={r.name} className="rounded-lg bg-white/10 px-2 py-1.5 text-center">
-                    <div className="text-[10px] text-slate-300">
+                  <div key={r.name} className="rounded-lg bg-white px-2 py-1.5 text-center ring-1 ring-market-border/60">
+                    <div className="text-[10px] text-market-sub">
                       {r.icon} {r.name}
                     </div>
-                    <div className="text-xs font-bold text-white">{r.share}%</div>
-                    <div className="text-[10px] text-slate-400">${Math.round((10000 * r.share) / 100)}</div>
+                    <div className="text-xs font-bold text-market-text">{r.share}%</div>
+                    <div className="text-[10px] text-market-sub">${Math.round((10000 * r.share) / 100)}</div>
                   </div>
                 ))}
               </div>
@@ -779,11 +779,11 @@ export default function WegEconomy() {
   )
 }
 
-function DarkStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+function JStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="rounded-lg bg-white/10 px-4 py-2.5 text-center ring-1 ring-white/10">
-      <div className="text-[11px] text-slate-300">{label}</div>
-      <div className={`font-mono text-xl font-black ${accent ? 'text-emerald-300' : 'text-white'} tnum`}>{value}</div>
+    <div className="rounded-lg bg-white px-4 py-2.5 text-center ring-1 ring-market-border/60">
+      <div className="text-[11px] text-market-sub">{label}</div>
+      <div className={`font-mono text-xl font-black ${accent ? 'text-emerald-600' : 'text-market-text'} tnum`}>{value}</div>
     </div>
   )
 }
