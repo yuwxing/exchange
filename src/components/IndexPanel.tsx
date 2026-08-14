@@ -8,9 +8,8 @@ export default function IndexPanel() {
   const indices = useMarket((s) => s.indices)
   const sectors = useMarket((s) => s.sectors)
   const quotes = useMarket((s) => s.quotes)
-  const eco = useMarket((s) => s.eco)
-  const marketOpen = useMarket((s) => s.marketOpen)
   const allAssets = useMarket((s) => s.allAssets)
+  const account = useMarket((s) => s.account)
   const navigate = useNavigate()
 
   const ai100 = indices.ai100
@@ -83,20 +82,15 @@ export default function IndexPanel() {
           <div
             className="cursor-pointer rounded-lg border border-market-border bg-market-bg px-3 py-2"
             onClick={() => navigate('/weg')}
+            title="AI 劳动力市场 · WEG 贡献积分"
           >
             <div className="flex items-center gap-1.5 text-xs text-market-sub">
-              <span>WEG</span>
-              <span
-                className={`inline-block h-1.5 w-1.5 rounded-full ${
-                  marketOpen ? 'bg-market-up' : 'bg-market-bg'
-                } ring-1 ring-market-border`}
-                title={marketOpen ? '交易中' : '已收盘'}
-              />
+              <span>🧑‍💻 WEG 贡献积分</span>
             </div>
             <div className="mt-0.5 text-sm font-bold text-market-text tnum">
-              ${eco.wegPrice.toFixed(2)}
+              {fmtNumber(account.wegBalance, 0)}
             </div>
-            <PriceText value={(eco.wegPrice - eco.wegPrev) / eco.wegPrev} className="text-xs" digits={2} />
+            <div className="text-[11px] text-market-sub">AI 劳动力市场</div>
           </div>
         </div>
       </div>

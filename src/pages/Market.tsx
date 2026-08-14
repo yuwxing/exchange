@@ -8,7 +8,6 @@ import SentimentGauge from '../components/SentimentGauge'
 import WhaleFeed from '../components/WhaleFeed'
 import SectorHeat from '../components/SectorHeat'
 import AiGdp from '../components/AiGdp'
-import { fmtNumber } from '../utils/format'
 
 export default function Market() {
   const quotes = useMarket((s) => s.quotes)
@@ -252,21 +251,22 @@ export default function Market() {
       <section className="rounded-xl bg-gradient-to-r from-market-primary to-market-primary-hover p-5 text-white">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h3 className="text-lg font-bold">AI 贡献系统已上线</h3>
+            <h3 className="text-lg font-bold">AI 劳动力市场已上线</h3>
             <p className="mt-1 text-sm text-white/85">
-              学习、创作、开发，都可以获得 WEG 生态积分奖励。WEG 衡量 AI 生态贡献，不发行、不募资。
+              Agent 承接任务、调用 Skill 与 Model、消耗 Compute，完成任务创造 AI 劳动价值。
+              研究、开发、贡献评价，都可以获得 WEG 贡献积分。
             </p>
           </div>
           <div className="flex items-center gap-2">
             <div className="rounded-lg bg-white/15 px-4 py-2 text-center">
-              <div className="text-xs text-white/80">WEG 现价</div>
-              <div className="text-xl font-bold tnum">${fmtNumber(quotes.WEG?.price ?? 5.8)}</div>
+              <div className="text-xs text-white/80">今日任务</div>
+              <div className="text-xl font-bold tnum">12,482</div>
             </div>
             <button
               className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-market-primary hover:bg-white/90"
               onClick={() => navigate('/weg')}
             >
-              了解 WEG 生态
+              进入 AI 劳动力市场
             </button>
           </div>
         </div>

@@ -348,6 +348,46 @@ export type MarketEngineRun = {
   riskNote: string
 }
 
+/** ============ V3 · AI Labor Market（AI 劳动力市场） ============ */
+
+/** 劳动力任务（由 Agent 承接的 AI 经济工作） */
+export type LaborTask = {
+  id: string
+  symbol: string // 关联资产代码，如 AG-CODEX
+  title: string // 任务名
+  description: string
+  reward: number // 任务奖励（$ AI Value）
+  agent: string // 执行 Agent
+  skill: string // 调用 Skill
+  model: string // 调用 Model
+  compute: string // 消耗算力
+  duration: string // 预计耗时
+  successRate: number // 成功率 %
+  demand: number // 需求热度 0-100
+  category: '研发' | '运营' | '数据' | '内容' | '客服' | '研究'
+}
+
+/** 劳动力流转阶段（流水线） */
+export type LaborFlowStage =
+  | 'agent'
+  | 'accept'
+  | 'skill'
+  | 'model'
+  | 'compute'
+  | 'done'
+  | 'credit'
+
+/** 劳动力流转节点 */
+export const LABOR_FLOW: { id: LaborFlowStage; name: string; icon: string; en: string }[] = [
+  { id: 'agent', name: 'Agent', icon: '🤖', en: 'Agent' },
+  { id: 'accept', name: '接任务', icon: '📥', en: 'Accept' },
+  { id: 'skill', name: '调用 Skill', icon: '🧩', en: 'Skill' },
+  { id: 'model', name: '调用 Model', icon: '🧠', en: 'Model' },
+  { id: 'compute', name: '消耗 Compute', icon: '⚡', en: 'Compute' },
+  { id: 'done', name: '完成任务', icon: '✅', en: 'Done' },
+  { id: 'credit', name: '获得 AI Credit', icon: '🏅', en: 'AI Credit' },
+]
+
 /** ============ V3 · AI GDP（AI 经济总量） ============ */
 
 /** AI GDP 板块构成（按市场板块划分） */
@@ -382,4 +422,81 @@ export type AiGdp = {
   updatedAt: string
   sectors: GdpSector[]
   categories: GdpCategory[]
+}
+
+/** ============ V3 · AI Labor Market（AI 劳动力市场扩展） ============ */
+
+/** Agent 技能项 */
+export type AgentSkill = {
+  name: string
+  stars: number // 1-5
+}
+
+/** Agent 简历（AI Worker Profile） */
+export type AgentProfile = {
+  symbol: string
+  name: string
+  role: string // Coding Agent ...
+  roleEn: string
+  icon: string
+  rating: number // 综合评分 0-100
+  reputation: 'S' | 'A' | 'B' | 'C'
+  completedTasks: number
+  successRate: number // 成功率 %
+  avgDuration: string // 平均耗时
+  totalLaborValue: number // 总劳动价值 $
+  status: 'available' | 'busy' | 'offline'
+  pricing: {
+    base: number // 基础报价 $ / Task
+    complex: number // 复杂任务 $ / Task
+    enterprise: number // 企业项目 $ / Hour
+  }
+  demandStars: number // 需求 1-5
+  skills: AgentSkill[]
+  reputationDetail: {
+    completed: number
+    success: number
+    failed: number
+    reworkRate: number // 返工率 %
+    satisfaction: number // 用户满意度（5 分制）
+    avgDelivery: string // 平均交付时间
+    disputeRate: number // 争议率 %
+  }
+  productivity: number // $ / Agent Hour（单位时间劳动价值）
+}
+
+/** AI 职业工资（用于 AI LABOR INDEX） */
+export type LaborOccupation = {
+  id: string
+  name: string // Coding Agent ...
+  nameEn: string
+  icon: string
+  price: number // 劳动价格 $
+  change24h: number // 24h 涨跌 %
+}
+
+/** 任务层级 L1-L4 */
+export type TaskTier = {
+  level: string // L1..L4
+  name: string
+  nameEn: string
+  icon: string
+  priceRange: string
+  examples: string[]
+  color: string
+}
+
+/** AI 职业阶梯 L1-L7 */
+export type CareerLadderStep = {
+  level: string
+  name: string
+  icon: string
+  desc: string
+}
+
+/** AI 公司收入分成角色 */
+export type AiCompanyRole = {
+  name: string
+  icon: string
+  share: number // %
 }

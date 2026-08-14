@@ -8,7 +8,7 @@ const NAV = [
   { to: '/assets', label: '资产市场', icon: '🏛️' },
   { to: '/index', label: '指数中心', icon: '🧮' },
   { to: '/intelligence', label: 'AI 智能', icon: '🤖' },
-  { to: '/weg', label: 'WEG 生态', icon: '🌐' },
+  { to: '/weg', label: 'AI 劳动力', icon: '🧑‍💻' },
   { to: '/portfolio', label: '我的资产', icon: '💼' },
   { to: '/news', label: '新闻事件', icon: '📰' },
 ]

@@ -30,12 +30,12 @@ export type AdvisorContext = {
 export function analyzeAdvisor(input: string, ctx: AdvisorContext): AdvisorReply {
   const q = input.trim().toLowerCase()
 
-  // 0. 金库 / 质押（优先于资产代码匹配，避免 "WEG 金库" 被当作资产查询）
-  if (/金库|质押/.test(q)) {
+  // 0. 金库 / 质押 / 劳动力（优先于资产代码匹配）
+  if (/金库|质押|劳动力|任务市场|接单|Agent 简历|工资|贡献积分/.test(q)) {
     return {
-      reply: `WEG 金库：质押 WEG 获得模拟收益（年化 8%，按真实时间累积）。当前 WEG 模拟价 $${ctx.wegPrice.toFixed(2)}，解除质押时本金与收益按当时价格折算入账。`,
-      points: ['教育模拟内容，不构成任何理财建议。', '可在「WEG 生态」页的金库 tab 操作质押与解除。'],
-      suggestion: '试试问我「WEG 是什么」了解积分体系，或「市场情绪怎么样」。',
+      reply: `AI 劳动力市场：Agent 承接任务（修复 Bug / 数据分析 / 内容生成…），调用 Skill 与 Model、消耗 Compute，完成后获得 AI Value 与 WEG 贡献积分。WEG 是 AI 经济贡献积分，非货币、非证券。`,
+      points: ['任务按层级定价：L1 简单 1-10 · L2 专业 10-100 · L3 复杂 100-1000 · L4 Agent Team 按项目计费。', '每个 Agent 都有简历：信誉（S/A/B/C）、成功率、生产率与工资；AI LABOR 100 指数追踪劳动价格。'],
+      suggestion: '在「AI 劳动力」页可模拟接单、查看 Agent 简历、工资指数与贡献积分任务。',
     }
   }
 
@@ -95,7 +95,7 @@ export function analyzeAdvisor(input: string, ctx: AdvisorContext): AdvisorReply
     if (h.length === 0) {
       return {
         reply: '当前模拟账户为空仓状态，可用资金 $' + ctx.account.cash.toLocaleString('zh-CN') + '。',
-        points: ['建议：配置 3-5 个跨板块龙头资产分散风险。', `可通过「AI 贡献系统」赚取 WEG 兑换模拟资金，或质押到「WEG 金库」获取模拟收益。`],
+        points: ['建议：配置 3-5 个跨板块龙头资产分散风险。', `可通过「AI 劳动力」页模拟接单完成任务，赚取 WEG 贡献积分。`],
         suggestion: '试试问我「有什么机会」获取 AI 机会雷达推荐。',
       }
     }
@@ -134,24 +134,24 @@ export function analyzeAdvisor(input: string, ctx: AdvisorContext): AdvisorReply
   // 6. WEG 解释（不含金库/质押上下文）
   if (/weg|积分|贡献/.test(q)) {
     return {
-      reply: `WEG 是 AI 生态贡献积分（当前模拟价 $${ctx.wegPrice.toFixed(2)}），非货币、非证券。学习/教学/开发/使用均可获得；可质押到「WEG 金库」赚取模拟年化 8% 收益。`,
-      points: ['WEG 不发行、不募资、不承诺升值回报。', '贡献奖励直接入账 WEG 余额，可质押到金库或兑换模拟体验。'],
-      suggestion: '前往「WEG 生态」页查看行情、金库与贡献任务。',
+      reply: `WEG 是 AI 经济贡献积分（AI Economy Contribution Point），非货币、非证券。通过研究、交易模拟、创建 Agent、创建 Skill、测试 MCP、完成任务、发布数据、贡献评价获得，衡量你对 AI 生态的每一份贡献。`,
+      points: ['WEG 不发行、不募资、不承诺升值回报。', '贡献奖励直接入账 WEG 余额，并提升 AI Credit 信用分。'],
+      suggestion: '前往「AI 劳动力」页模拟接单、领取贡献积分任务、查看 Agent 简历与工资指数。',
     }
   }
 
   // 7. 平台说明
   if (/平台|是什么|模拟|怎么玩|教程|帮助/.test(q)) {
     return {
-      reply: '这里是 AI Exchange · 全球人工智能资产交易与经济系统（教育模拟）。模型、Agent、Skill、MCP、应用、机器人、数据、算力、协议 9 类 AI 资产统一模拟上市交易。',
-      points: ['10 大板块 · 136 个模拟标的 · 9 大指数 · 六大 AI 智能体。', '现货（市价/限价/止损/止盈）+ 模拟杠杆合约 + WEG 金库质押。'],
+      reply: '这里是 AI Exchange · 全球人工智能资产交易与经济系统（教育模拟）。模型、Agent、Skill、MCP、应用、机器人、数据、算力、协议 9 类 AI 资产统一模拟上市交易；AI 劳动力市场让 Agent 承接任务创造劳动价值。',
+      points: ['10 大板块 · 136 个模拟标的 · 9 大指数 · 六大 AI 智能体。', '现货（市价/限价/止损/止盈）+ 模拟杠杆合约 + AI 劳动力市场 + WEG 贡献积分。'],
       suggestion: '试试问我「市场情绪怎么样」「AI-DEEPSEEK 怎么样」「有什么机会」。',
     }
   }
 
   // 默认
   return {
-    reply: '我可以帮你分析：市场情绪、具体资产（如 AI-DEEPSEEK / AG-CODEX / WEG）、投资机会、持仓诊断、风险提示、WEG 金库与平台玩法。',
+    reply: '我可以帮你分析：市场情绪、具体资产（如 AI-DEEPSEEK / AG-CODEX / WEG）、投资机会、持仓诊断、风险提示、AI 劳动力市场与 WEG 贡献积分体系。',
     points: ['试试说：「市场情绪怎么样」', '试试说：「AI-DEEPSEEK 怎么样」', '试试说：「有什么机会」'],
   }
 }
