@@ -72,33 +72,66 @@ export default function Capital() {
 
   return (
     <div className="space-y-5">
-      {/* 头部 */}
-      <section className="overflow-hidden rounded-xl bg-gradient-to-r from-slate-800 via-slate-900 to-market-primary-hover p-6 text-white shadow-md">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <span className="text-2xl font-black tracking-tight">💰 AI Capital OS</span>
-              <span className="rounded bg-amber-400/20 px-2 py-0.5 text-xs font-bold text-amber-300 ring-1 ring-amber-300/40">
-                资本入口 · 总入口
+      {/* 头部（浅色） */}
+      <section className="overflow-hidden rounded-xl bg-gradient-to-r from-amber-50 via-white to-amber-50/70 p-6 shadow-sm ring-1 ring-amber-200/70">
+        <div className="flex flex-wrap items-start justify-between gap-5">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-2xl shadow-sm">
+                💰
               </span>
-              {capitalOs?.active && (
-                <span className="flex items-center gap-1.5 rounded bg-emerald-400/20 px-2 py-0.5 text-xs font-bold text-emerald-300 ring-1 ring-emerald-300/40">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
-                  闭环运行中
-                </span>
-              )}
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-2xl font-black tracking-tight text-market-text">AI Capital OS</span>
+                  <span className="rounded bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-600 ring-1 ring-amber-400/40">
+                    资本入口 · 总入口
+                  </span>
+                  {capitalOs?.active && (
+                    <span className="flex items-center gap-1.5 rounded bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-600 ring-1 ring-emerald-400/40">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                      闭环运行中
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1 text-sm text-market-sub">
+                  把资本交给 AI，由它自主完成「投资 → 生产 → 创收 → 回流 → 再平衡」的完整闭环
+                </div>
+              </div>
             </div>
-            <p className="mt-1.5 text-sm text-white/85">
-              不是「自己研究 136 个资产买来买去」——而是：资本进入 → AI 理解资本 → AI 配置资本 → AI 寻找机会 → AI 投资 AI 企业 → AI 劳动力生产 → AI 服务产生收入 → 利润回到资本 → AI 再平衡。
-            </p>
+
+            {/* 定位：不是手动炒股，而是 AI 自主资本闭环 */}
+            <div className="mt-5 space-y-2.5 rounded-xl bg-white/85 p-4 ring-1 ring-amber-200/70">
+              <div className="flex items-start gap-2.5 text-sm leading-relaxed text-market-sub">
+                <span className="mt-0.5 shrink-0 text-base">❌</span>
+                <p>
+                  不是「自己研究 136 个资产、反复手动买来买去」的炒股工具。
+                </p>
+              </div>
+              <div className="flex items-start gap-2.5 text-sm font-semibold leading-relaxed text-market-text">
+                <span className="mt-0.5 shrink-0 text-base">✅</span>
+                <p>而是 AI 自主运行的资本闭环：</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                {CAPITAL_LIFECYCLE.map((l, i) => (
+                  <span key={l.step} className="flex items-center gap-1.5">
+                    <span className="flex items-center gap-1 rounded-lg bg-white px-2 py-1 text-[11px] font-semibold text-market-text ring-1 ring-market-border/70">
+                      <span>{l.icon}</span>
+                      {l.name}
+                    </span>
+                    {i < CAPITAL_LIFECYCLE.length - 1 && <span className="text-[11px] text-market-border">→</span>}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="flex shrink-0 gap-2">
+
+          <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-start">
             {capitalOs?.active && (
-              <Link to="/portfolio" className="rounded-lg bg-white/15 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/30 hover:bg-white/25">
+              <Link to="/portfolio" className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-market-text ring-1 ring-market-border hover:bg-market-bg">
                 查看持仓 💼
               </Link>
             )}
-            <Link to="/assets" className="rounded-lg bg-white/15 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/30 hover:bg-white/25">
+            <Link to="/assets" className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-amber-600">
               资产市场 →
             </Link>
           </div>
