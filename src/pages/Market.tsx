@@ -1,84 +1,212 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMarket } from '../store/market'
-import { CATEGORIES, STOCKS } from '../data/stocks'
+import { SECTORS, assetOf } from '../data/assets'
 import IndexPanel from '../components/IndexPanel'
-import StockCard from '../components/StockCard'
+import AssetCard from '../components/AssetCard'
+import SentimentGauge from '../components/SentimentGauge'
+import WhaleFeed from '../components/WhaleFeed'
+import SectorHeat from '../components/SectorHeat'
 import { fmtNumber } from '../utils/format'
 
 export default function Market() {
   const quotes = useMarket((s) => s.quotes)
+  const sectors = useMarket((s) => s.sectors)
   const news = useMarket((s) => s.news)
-  const [activeCat, setActiveCat] = useState<string>('all')
+  const allAssets = useMarket((s) => s.allAssets)
+  const dailyReport = useMarket((s) => s.dailyReport)
+  const aiReports = useMarket((s) => s.aiReports)
+  const sentiment = useMarket((s) => s.sentiment)
+  const whaleFlows = useMarket((s) => s.whaleFlows)
+  const [activeSector, setActiveSector] = useState<string>('all')
   const navigate = useNavigate()
 
-  const hotStocks = [...STOCKS]
-    .filter((s) => activeCat === 'all' || s.categoryId === activeCat)
-    .sort((a, b) => Math.abs((quotes[b.symbol]?.changePct ?? 0)) - Math.abs((quotes[a.symbol]?.changePct ?? 0)))
+  const assets = allAssets()
+  const hotAssets = assets
+    .filter((a) => activeSector === 'all' || a.sectorId === activeSector)
+    .sort((a, b) => Math.abs(quotes[b.symbol]?.changePct ?? 0) - Math.abs(quotes[a.symbol]?.changePct ?? 0))
     .slice(0, 8)
 
   const topNews = news.slice(0, 4)
+  const researchReport = aiReports.research
 
   return (
     <div className="space-y-5">
+      {/* 第一屏：品牌定位 + 显著免责声明 */}
+      <section className="overflow-hidden rounded-xl bg-gradient-to-r from-market-primary via-market-primary to-market-primary-hover p-6 text-white shadow-md">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <span className="text-3xl font-black tracking-tight">AI Exchange</span>
+              <span className="rounded bg-white/20 px-2 py-0.5 text-xs font-bold text-white ring-1 ring-white/30">
+                模拟
+              </span>
+            </div>
+            <p className="mt-1.5 text-lg font-medium text-white/95">全球 AI 经济模拟交易市场</p>
+            <p className="mt-1 max-w-2xl text-sm text-white/75">
+              模型 · Agent · Skill · MCP · 应用 · 机器人 · 数据 · 算力 · 协议 —— 统一资产化、指数化、交易化的教育模拟平台
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate('/assets')}
+              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-market-primary transition-colors hover:bg-white/90"
+            >
+              资产市场 →
+            </button>
+            <button
+              onClick={() => navigate('/intelligence')}
+              className="rounded-lg bg-white/15 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/30 transition-colors hover:bg-white/25"
+            >
+              AI 智能
+            </button>
+          </div>
+        </div>
+        <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900 ring-1 ring-amber-300">
+          <span className="mt-0.5 text-lg">⚠️</span>
+          <p>
+            本平台为 <b>AI 产业经济模拟与教育研究平台</b>。所有资产、行情、交易、指数、合约及收益均为
+            <b> 模拟数据</b>，不代表真实证券、金融产品或数字资产。
+          </p>
+        </div>
+      </section>
+
       <IndexPanel />
 
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold text-market-text">市场分类</h2>
-          <span className="text-xs text-market-sub">按 AI 生态板块分类</span>
+      {/* 市场脉搏：AI 情绪指数 + 巨鲸动态 */}
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-market-border/60 lg:col-span-1">
+          <div className="mb-1 flex items-center justify-between">
+            <h2 className="text-base font-bold text-market-text">AI 情绪指数</h2>
+            <span className="text-[11px] text-market-sub">恐惧-贪婪</span>
+          </div>
+          <SentimentGauge score={sentiment.score} level={sentiment.level} prev={sentiment.prev} history={sentiment.history} />
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {sentiment.drivers.map((d) => (
+              <span key={d.label} className="rounded bg-market-bg px-2 py-0.5 text-[10px] text-market-sub">
+                {d.label} {d.value} · 权重{d.weight}%
+              </span>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setActiveCat('all')}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              activeCat === 'all'
-                ? 'bg-market-primary text-white'
-                : 'bg-white text-market-sub ring-1 ring-market-border/60 hover:text-market-text'
-            }`}
-          >
-            全部
-          </button>
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCat(cat.id)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                activeCat === cat.id
-                  ? 'bg-market-primary text-white'
-                  : 'bg-white text-market-sub ring-1 ring-market-border/60 hover:text-market-text'
-              }`}
-            >
-              {cat.symbol} {cat.name}
-            </button>
-          ))}
+        <div className="lg:col-span-2">
+          <WhaleFeed limit={7} />
         </div>
       </section>
 
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold text-market-text">热门 AI 股票</h2>
+          <h2 className="text-base font-bold text-market-text">十大市场</h2>
+          <span className="text-xs text-market-sub">模型 / Agent / Skill / MCP / 应用 / 机器人 / 数据 / 算力 / 协议 / 指数</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
           <button
-            className="text-sm font-medium text-market-primary hover:underline"
-            onClick={() => navigate('/stocks')}
+            onClick={() => setActiveSector('all')}
+            className={`rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+              activeSector === 'all'
+                ? 'bg-market-primary text-white shadow'
+                : 'bg-white text-market-sub ring-1 ring-market-border/60 hover:text-market-text'
+            }`}
           >
+            🌐 全部市场
+          </button>
+          {SECTORS.map((sec) => {
+            const v = sectors[sec.id]
+            const pct = v && v.prev > 0 ? ((v.value - v.prev) / v.prev) * 100 : 0
+            const count = assets.filter((a) => a.sectorId === sec.id).length
+            const secFlows = whaleFlows.filter((f) => assetOf(f.symbol)?.sectorId === sec.id)
+            return (
+              <button
+                key={sec.id}
+                onClick={() => setActiveSector(sec.id)}
+                className={`rounded-xl px-3 py-2.5 text-left transition-colors ${
+                  activeSector === sec.id
+                    ? 'bg-market-primary text-white shadow'
+                    : 'bg-white ring-1 ring-market-border/60 hover:text-market-text'
+                }`}
+              >
+                <div className="flex items-center justify-between text-sm font-semibold">
+                  <span>
+                    {sec.symbol} {sec.code} {sec.name}
+                  </span>
+                  <span
+                    className={`text-[10px] font-bold ${
+                      activeSector === sec.id ? 'text-white/80' : pct >= 0 ? 'text-market-up' : 'text-market-down'
+                    }`}
+                  >
+                    {pct >= 0 ? '+' : ''}
+                    {pct.toFixed(2)}%
+                  </span>
+                </div>
+                <div className={`mt-0.5 flex items-center justify-between ${activeSector === sec.id ? '' : ''}`}>
+                  <span className={`text-[10px] ${activeSector === sec.id ? 'text-white/70' : 'text-market-sub'}`}>
+                    {count} 个标的 · {sec.prefix} 前缀
+                  </span>
+                  {activeSector !== sec.id && <SectorHeat pct={pct / 100} flows={secFlows} />}
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-bold text-market-text">
+            {activeSector === 'all' ? '热门 AI 资产' : `热门 ${SECTORS.find((s) => s.id === activeSector)?.name ?? ''} 资产`}
+          </h2>
+          <button className="text-sm font-medium text-market-primary hover:underline" onClick={() => navigate('/assets')}>
             查看全部 →
           </button>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {hotStocks.map((s) => (
-            <StockCard key={s.symbol} stock={s} />
+          {hotAssets.map((a) => (
+            <AssetCard key={a.symbol} asset={a} />
           ))}
         </div>
       </section>
 
+      {researchReport && (
+        <section
+          className="cursor-pointer rounded-xl bg-gradient-to-r from-sky-600 to-market-primary p-5 text-white transition-transform hover:scale-[1.005]"
+          onClick={() => navigate('/intelligence')}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-semibold text-white/90">
+                <span>🔭 AI Research Agent</span>
+                <span className="rounded bg-white/15 px-1.5 py-0.5 text-[10px]">最新发现</span>
+              </div>
+              <h3 className="mt-1 text-lg font-bold">{researchReport.title}</h3>
+              <p className="mt-1 text-sm text-white/85">{researchReport.summary}</p>
+            </div>
+            <button className="shrink-0 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-market-primary hover:bg-white/90">
+              进入 AI 智能 →
+            </button>
+          </div>
+        </section>
+      )}
+
+      {dailyReport && (
+        <section
+          className="cursor-pointer rounded-xl bg-white p-5 shadow-sm ring-1 ring-market-border/60"
+          onClick={() => navigate('/intelligence')}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold text-market-primary">📋 AI 市场日报</div>
+              <div className="mt-0.5 text-base font-bold text-market-text">{dailyReport.title}</div>
+              <p className="mt-1 text-sm text-market-sub">{dailyReport.summary}</p>
+            </div>
+            <span className="text-xs text-market-sub">由 6 个 AI 智能体协同生成 · {dailyReport.generatedAt}</span>
+          </div>
+        </section>
+      )}
+
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-base font-bold text-market-text">AI 市场新闻</h2>
-          <button
-            className="text-sm font-medium text-market-primary hover:underline"
-            onClick={() => navigate('/news')}
-          >
+          <button className="text-sm font-medium text-market-primary hover:underline" onClick={() => navigate('/news')}>
             全部事件 →
           </button>
         </div>
@@ -108,14 +236,10 @@ export default function Market() {
                     </span>
                   )}
                 </div>
-                <h3 className="mt-1.5 line-clamp-1 text-sm font-semibold text-market-text">
-                  {n.title}
-                </h3>
+                <h3 className="mt-1.5 line-clamp-1 text-sm font-semibold text-market-text">{n.title}</h3>
                 <p className="mt-1 line-clamp-1 text-xs text-market-sub">{n.summary}</p>
               </div>
-              <div className="shrink-0 text-right text-[11px] text-market-sub">
-                {n.time.slice(11)}
-              </div>
+              <div className="shrink-0 text-right text-[11px] text-market-sub">{n.time.slice(11)}</div>
             </div>
           ))}
         </div>
@@ -132,7 +256,7 @@ export default function Market() {
           <div className="flex items-center gap-2">
             <div className="rounded-lg bg-white/15 px-4 py-2 text-center">
               <div className="text-xs text-white/80">WEG 现价</div>
-              <div className="text-xl font-bold tnum">¥{fmtNumber(quotes.WEG?.price ?? 5.8)}</div>
+              <div className="text-xl font-bold tnum">${fmtNumber(quotes.WEG?.price ?? 5.8)}</div>
             </div>
             <button
               className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-market-primary hover:bg-white/90"

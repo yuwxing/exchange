@@ -1,12 +1,17 @@
 import { Link } from 'react-router-dom'
 import { useMarket } from '../store/market'
-import { STOCKS } from '../data/stocks'
 import { fmtNumber, isUp } from '../utils/format'
 
 export default function Portfolio() {
   const account = useMarket((s) => s.account)
   const quotes = useMarket((s) => s.quotes)
+  const allAssets = useMarket((s) => s.allAssets)
   const resetAccount = useMarket((s) => s.resetAccount)
+  const contracts = useMarket((s) => s.contracts)
+  const openOrders = useMarket((s) => s.openOrders)
+  const closeContract = useMarket((s) => s.closeContract)
+  const cancelOrder = useMarket((s) => s.cancelOrder)
+  const assets = allAssets()
 
   const holdingsDetail = account.holdings.map((h) => {
     const q = quotes[h.symbol]
@@ -33,7 +38,7 @@ export default function Portfolio() {
           <div>
             <h1 className="text-xl font-bold text-market-text">我的资产</h1>
             <p className="mt-0.5 text-sm text-market-sub">
-              模拟账户 · 初始资金 ¥1,000,000 · 数据保存在本地
+              模拟账户 · USDT 100,000 · WEG 10,000 · AI 信用 100 · 数据保存在本地
             </p>
           </div>
           <button
@@ -50,19 +55,19 @@ export default function Portfolio() {
           <div className="rounded-lg bg-market-bg p-4">
             <div className="text-xs text-market-sub">总资产</div>
             <div className="mt-1 text-2xl font-bold text-market-text tnum">
-              ¥{fmtNumber(totalAssets)}
+              ${fmtNumber(totalAssets)}
             </div>
           </div>
           <div className="rounded-lg bg-market-bg p-4">
             <div className="text-xs text-market-sub">可用资金</div>
             <div className="mt-1 text-2xl font-bold text-market-text tnum">
-              ¥{fmtNumber(account.cash)}
+              ${fmtNumber(account.cash)}
             </div>
           </div>
           <div className="rounded-lg bg-market-bg p-4">
             <div className="text-xs text-market-sub">持仓市值</div>
             <div className="mt-1 text-2xl font-bold text-market-text tnum">
-              ¥{fmtNumber(stockValue)}
+              ${fmtNumber(stockValue)}
             </div>
           </div>
           <div className={`rounded-lg p-4 ${up ? 'bg-market-up/10' : 'bg-market-down/10'}`}>
@@ -76,6 +81,25 @@ export default function Portfolio() {
           </div>
         </div>
 
+        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="rounded-lg bg-market-bg p-4">
+            <div className="text-xs text-market-sub">WEG 余额（生态积分）</div>
+            <div className="mt-1 text-xl font-bold text-market-text tnum">{fmtNumber(account.wegBalance)} WEG</div>
+          </div>
+          <div className="rounded-lg bg-market-bg p-4">
+            <div className="text-xs text-market-sub">AI 信用</div>
+            <div className="mt-1 text-xl font-bold text-market-primary tnum">{account.aiCredit}</div>
+          </div>
+          <div className="rounded-lg bg-market-bg p-4">
+            <div className="text-xs text-market-sub">贡献等级</div>
+            <div className="mt-1 text-xl font-bold text-market-text tnum">Lv.{account.level}</div>
+          </div>
+          <div className="rounded-lg bg-market-bg p-4">
+            <div className="text-xs text-market-sub">累计贡献</div>
+            <div className="mt-1 text-xl font-bold text-market-text tnum">{fmtNumber(account.totalEarned)} WEG</div>
+          </div>
+        </div>
+
         <div className="mt-4 flex items-center justify-between rounded-lg border border-market-border px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-market-primary text-sm font-bold text-white">
@@ -84,7 +108,7 @@ export default function Portfolio() {
             <div>
               <div className="text-sm font-bold text-market-text">贡献等级 Lv.{account.level}</div>
               <div className="text-xs text-market-sub">
-                累计贡献 {fmtNumber(account.totalEarned)} WEG · 经验 {account.experience}/{expNext}
+                经验 {account.experience}/{expNext} · 完成任务赚取 WEG 与 AI 信用
               </div>
             </div>
           </div>
@@ -106,10 +130,10 @@ export default function Portfolio() {
             <div className="text-3xl">📭</div>
             <p className="mt-2 text-sm text-market-sub">暂无持仓</p>
             <Link
-              to="/stocks"
+              to="/assets"
               className="mt-3 inline-block rounded-lg bg-market-primary px-4 py-2 text-sm font-medium text-white hover:bg-market-primary-hover"
             >
-              去 AI 股票榜看看
+              去 AI 资产市场看看
             </Link>
           </div>
         ) : (
@@ -126,13 +150,13 @@ export default function Portfolio() {
               </thead>
               <tbody>
                 {holdingsDetail.map((h) => {
-                  const isWeg = STOCKS.find((s) => s.symbol === h.symbol)?.isWeg
+                  const isWeg = assets.find((s) => s.symbol === h.symbol)?.isWeg
                   const up = isUp(h.pl)
                   return (
                     <tr key={h.symbol} className="border-t border-market-border/60">
                       <td className="px-5 py-3">
                         <Link
-                          to={`/stock/${h.symbol}`}
+                          to={`/asset/${h.symbol}`}
                           className="text-sm font-bold text-market-text hover:text-market-primary"
                         >
                           {h.symbol}
@@ -144,13 +168,13 @@ export default function Portfolio() {
                       </td>
                       <td className="px-3 py-3 text-right text-sm text-market-sub tnum">
                         {h.quantity} 股
-                        <div className="text-xs">成本 ¥{h.avgCost.toFixed(2)}</div>
+                        <div className="text-xs">成本 ${h.avgCost.toFixed(2)}</div>
                       </td>
                       <td className="px-3 py-3 text-right text-sm font-semibold text-market-text tnum">
-                        ¥{h.q ? h.q.price.toFixed(2) : '--'}
+                        ${h.q ? h.q.price.toFixed(2) : '--'}
                       </td>
                       <td className="px-3 py-3 text-right text-sm font-semibold text-market-text tnum">
-                        ¥{fmtNumber(h.marketValue)}
+                        ${fmtNumber(h.marketValue)}
                       </td>
                       <td
                         className={`px-5 py-3 text-right text-sm font-semibold tnum ${
@@ -163,6 +187,130 @@ export default function Portfolio() {
                     </tr>
                   )
                 })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* 合约仓位 */}
+      <div className="rounded-xl bg-white shadow-sm ring-1 ring-market-border/60">
+        <div className="border-b border-market-border px-5 py-3">
+          <h2 className="text-base font-bold text-market-text">合约仓位（{contracts.length}）· 模拟杠杆</h2>
+        </div>
+        {contracts.length === 0 ? (
+          <p className="px-5 py-8 text-center text-sm text-market-sub">
+            暂无合约仓位，可在资产详情页选择「合约」模式开仓（2x / 5x / 10x）
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px]">
+              <thead className="bg-market-bg/50 text-left text-xs text-market-sub">
+                <tr>
+                  <th className="px-5 py-2.5 font-semibold">标的</th>
+                  <th className="px-3 py-2.5 text-right font-semibold">方向/杠杆</th>
+                  <th className="px-3 py-2.5 text-right font-semibold">开仓价</th>
+                  <th className="px-3 py-2.5 text-right font-semibold">保证金</th>
+                  <th className="px-3 py-2.5 text-right font-semibold">浮动盈亏</th>
+                  <th className="px-5 py-2.5 text-right font-semibold">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {contracts.map((c) => {
+                  const q = quotes[c.symbol]
+                  const pnl = q
+                    ? c.side === 'long'
+                      ? (q.price - c.entryPrice) * c.quantity
+                      : (c.entryPrice - q.price) * c.quantity
+                    : 0
+                  const pnlPct = c.margin > 0 ? (pnl / c.margin) * 100 : 0
+                  const up = isUp(pnl)
+                  return (
+                    <tr key={c.id} className="border-t border-market-border/60">
+                      <td className="px-5 py-3">
+                        <Link to={`/asset/${c.symbol}`} className="text-sm font-bold text-market-text hover:text-market-primary">
+                          {c.symbol}
+                        </Link>
+                        <div className="text-xs text-market-sub">{c.name}</div>
+                      </td>
+                      <td className="px-3 py-3 text-right text-sm tnum">
+                        <span className={`font-bold ${c.side === 'long' ? 'text-market-up' : 'text-market-down'}`}>
+                          {c.side === 'long' ? '做多' : '做空'} {c.leverage}x
+                        </span>
+                      </td>
+                      <td className="px-3 py-3 text-right text-sm text-market-sub tnum">${c.entryPrice.toFixed(2)}</td>
+                      <td className="px-3 py-3 text-right text-sm text-market-sub tnum">${fmtNumber(c.margin)}</td>
+                      <td className={`px-3 py-3 text-right text-sm font-semibold tnum ${up ? 'text-market-up' : 'text-market-down'}`}>
+                        {up ? '+' : ''}
+                        {fmtNumber(pnl)}（{pnlPct.toFixed(1)}%）
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <button
+                          onClick={() => closeContract(c.id)}
+                          className="rounded bg-market-down/10 px-2.5 py-1 text-xs font-semibold text-market-down hover:bg-market-down/20"
+                        >
+                          平仓
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* 挂单 */}
+      <div className="rounded-xl bg-white shadow-sm ring-1 ring-market-border/60">
+        <div className="border-b border-market-border px-5 py-3">
+          <h2 className="text-base font-bold text-market-text">挂单（{openOrders.filter((o) => o.status === 'pending').length}）· 限价 / 止损 / 止盈</h2>
+        </div>
+        {openOrders.filter((o) => o.status === 'pending').length === 0 ? (
+          <p className="px-5 py-8 text-center text-sm text-market-sub">
+            暂无挂单，可在资产详情页使用「限价 / 止损 / 止盈」挂单
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px]">
+              <thead className="bg-market-bg/50 text-left text-xs text-market-sub">
+                <tr>
+                  <th className="px-5 py-2.5 font-semibold">标的</th>
+                  <th className="px-3 py-2.5 font-semibold">类型</th>
+                  <th className="px-3 py-2.5 text-right font-semibold">方向</th>
+                  <th className="px-3 py-2.5 text-right font-semibold">触发价</th>
+                  <th className="px-3 py-2.5 text-right font-semibold">数量</th>
+                  <th className="px-5 py-2.5 text-right font-semibold">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {openOrders
+                  .filter((o) => o.status === 'pending')
+                  .map((o) => (
+                    <tr key={o.id} className="border-t border-market-border/60">
+                      <td className="px-5 py-3">
+                        <Link to={`/asset/${o.symbol}`} className="text-sm font-bold text-market-text hover:text-market-primary">
+                          {o.symbol}
+                        </Link>
+                      </td>
+                      <td className="px-3 py-3 text-sm text-market-sub">
+                        {o.kind === 'limit' ? '限价' : o.kind === 'stopLoss' ? '止损' : '止盈'}
+                      </td>
+                      <td className={`px-3 py-3 text-right text-sm font-semibold ${o.side === 'buy' ? 'text-market-up' : 'text-market-down'}`}>
+                        {o.side === 'buy' ? '买入' : '卖出'}
+                      </td>
+                      <td className="px-3 py-3 text-right text-sm text-market-sub tnum">${o.price.toFixed(2)}</td>
+                      <td className="px-3 py-3 text-right text-sm text-market-sub tnum">{o.quantity} 股</td>
+                      <td className="px-5 py-3 text-right">
+                        <button
+                          onClick={() => cancelOrder(o.id)}
+                          className="rounded bg-market-bg px-2.5 py-1 text-xs font-semibold text-market-sub hover:text-market-down"
+                        >
+                          撤单
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -195,11 +343,11 @@ export default function Portfolio() {
                     </span>
                     <span className="font-semibold text-market-text">{o.symbol}</span>
                     <span className="text-xs text-market-sub">
-                      {o.quantity} 股 @ ¥{o.price.toFixed(2)}
+                      {o.quantity} 股 @ ${o.price.toFixed(2)}
                     </span>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold text-market-text tnum">¥{fmtNumber(o.amount)}</div>
+                    <div className="font-semibold text-market-text tnum">${fmtNumber(o.amount)}</div>
                     <div className="text-[10px] text-market-sub">{o.time}</div>
                   </div>
                 </div>

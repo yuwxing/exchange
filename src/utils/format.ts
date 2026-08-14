@@ -16,7 +16,9 @@ export function round2(n: number) {
 }
 
 export function fmtNumber(n: number, digits = 2) {
-  return n.toLocaleString('zh-CN', {
+  const v = Number(n)
+  if (!Number.isFinite(v)) return '0.00'
+  return v.toLocaleString('zh-CN', {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
   })

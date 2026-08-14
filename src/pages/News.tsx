@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMarket } from '../store/market'
-import { CATEGORIES } from '../data/stocks'
+import { SECTORS } from '../data/assets'
 
 export default function News() {
   const news = useMarket((s) => s.news)
@@ -14,7 +14,7 @@ export default function News() {
   const list = useMemo(() => {
     if (filter === 'all') return news
     if (filter === 'important') return news.filter((n) => n.importance === 3)
-    return news.filter((n) => n.categoryId === filter)
+    return news.filter((n) => n.sectorId === filter)
   }, [news, filter])
 
   const publish = (id: string, title: string) => {
@@ -61,7 +61,7 @@ export default function News() {
         >
           🔔 重要事件
         </button>
-        {CATEGORIES.map((c) => (
+        {SECTORS.map((c) => (
           <button
             key={c.id}
             onClick={() => setFilter(c.id)}
@@ -71,7 +71,7 @@ export default function News() {
                 : 'bg-white text-market-sub ring-1 ring-market-border/60 hover:text-market-text'
             }`}
           >
-            {c.symbol} {c.name}
+            {c.symbol} {c.code} {c.name}
           </button>
         ))}
       </div>
@@ -98,7 +98,7 @@ export default function News() {
                   </span>
                   {n.symbol && (
                     <Link
-                      to={`/stock/${n.symbol}`}
+                      to={`/asset/${n.symbol}`}
                       className="rounded bg-market-bg px-1.5 py-0.5 text-[10px] font-bold text-market-text hover:text-market-primary"
                     >
                       {n.symbol}
@@ -170,10 +170,14 @@ function indexLabel(key: string) {
     developers: '开发者生态',
     ecosystem: '生态指数',
     market: '市场情绪',
-    foundation: '基础模型板块',
-    agentcat: 'Agent 板块',
-    education: '教育 AI 板块',
+    model: '模型板块',
+    skill: '技能板块',
+    mcp: '工具协议板块',
+    app: '应用板块',
     robot: '机器人板块',
+    data: '数据板块',
+    infra: '算力板块',
+    protocol: '协议板块',
   }
   return map[key] ?? key
 }

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMarket } from '../store/market'
-import { CONTRIBUTION_RULES } from '../data/stocks'
+import { CONTRIBUTION_RULES } from '../data/assets'
 import { fmtCompact, fmtNumber, isUp } from '../utils/format'
 import { Sparkline } from '../components/Sparkline'
 import type { Candle } from '../types'
@@ -24,11 +24,16 @@ export default function WegEconomy() {
   const dailySettles = useMarket((s) => s.dailySettles)
   const marketOpen = useMarket((s) => s.marketOpen)
   const tradeDate = useMarket((s) => s.tradeDate)
-  const [tab, setTab] = useState<'weg' | 'paper' | 'contribute'>('weg')
+  const stake = useMarket((s) => s.stake)
+  const stakeWeg = useMarket((s) => s.stakeWeg)
+  const unstakeWeg = useMarket((s) => s.unstakeWeg)
+  const [tab, setTab] = useState<'weg' | 'paper' | 'contribute' | 'vault'>('weg')
   const [toast, setToast] = useState('')
+  const [stakeQty, setStakeQty] = useState(100)
 
-  const tabs: { id: 'weg' | 'paper' | 'contribute'; label: string }[] = [
+  const tabs: { id: 'weg' | 'paper' | 'contribute' | 'vault'; label: string }[] = [
     { id: 'weg', label: 'WEG 行情' },
+    { id: 'vault', label: 'WEG 金库' },
     { id: 'paper', label: '经济白皮书' },
     { id: 'contribute', label: 'AI 贡献系统' },
   ]
@@ -85,14 +90,14 @@ export default function WegEconomy() {
               </span>
             </div>
             <div className={`mt-1 text-4xl font-bold tnum ${up ? 'text-market-up' : 'text-market-down'}`}>
-              ¥{fmtNumber(eco.wegPrice)}
+              ${fmtNumber(eco.wegPrice)}
             </div>
             <div className={`mt-1 text-lg font-semibold tnum ${up ? 'text-market-up' : 'text-market-down'}`}>
               {up ? '▲' : '▼'} {Math.abs(((eco.wegPrice - eco.wegPrev) / eco.wegPrev) * 100).toFixed(2)}%
             </div>
             <div className="mt-1 text-xs text-market-sub">模拟结算价 · 由 AI Engine 生成</div>
             <div className="mt-1 text-[11px] text-market-sub">
-              第 {simDay} 个交易日（{tradeDate}）· 上次结算 ¥{lastSettle.toFixed(2)}
+              第 {simDay} 个交易日（{tradeDate}）· 上次结算 ${lastSettle.toFixed(2)}
             </div>
           </div>
         </div>
@@ -136,7 +141,7 @@ export default function WegEconomy() {
               <Sparkline data={spark} color={up ? '#16A34A' : '#DC2626'} width={720} height={140} />
             </div>
             <div className="mt-2 text-xs text-market-sub">
-              当前市场报价 ¥{fmtNumber(wegQuote?.price ?? 5.8)}（含交易波动） · 结算价 ¥{eco.wegPrice.toFixed(2)}（由生态指数计算）
+              当前市场报价 ${fmtNumber(wegQuote?.price ?? 5.8)}（含交易波动） · 结算价 ${eco.wegPrice.toFixed(2)}（由生态指数计算）
             </div>
           </div>
 
@@ -176,6 +181,112 @@ export default function WegEconomy() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {tab === 'vault' && (
+        <div className="space-y-5">
+          <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-market-border/60">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-market-text">🏦 WEG 金库</span>
+                  <span className="rounded bg-market-primary/10 px-1.5 py-0.5 text-[10px] font-bold text-market-primary">
+                    模拟年化：8.00%
+                  </span>
+                </div>
+                <p className="mt-1 max-w-2xl text-sm text-market-sub">
+                  质押 WEG 获得模拟收益，理解「锁定 — 收益」机制。收益按真实时间累积，随时可解除。
+                  教育模拟内容，不构成任何理财建议。
+                </p>
+              </div>
+              <div className="rounded-lg bg-market-bg px-4 py-2 text-center">
+                <div className="text-xs text-market-sub">WEG 现价</div>
+                <div className="text-lg font-bold text-market-primary tnum">${eco.wegPrice.toFixed(2)}</div>
+              </div>
+            </div>
+
+            {stake ? (
+              <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                <div className="rounded-lg border border-market-border p-3">
+                  <div className="text-xs text-market-sub">已质押</div>
+                  <div className="mt-1 text-lg font-bold text-market-text tnum">{stake.amount} WEG</div>
+                </div>
+                <div className="rounded-lg border border-market-border p-3">
+                  <div className="text-xs text-market-sub">模拟年化</div>
+                  <div className="mt-1 text-lg font-bold text-market-text tnum">{stake.apr}%</div>
+                </div>
+                <div className="rounded-lg border border-market-border p-3">
+                  <div className="text-xs text-market-sub">已累计收益</div>
+                  <div className="mt-1 text-lg font-bold text-market-up tnum">+{stake.accrued.toFixed(4)} WEG（模拟收益）</div>
+                </div>
+                <div className="rounded-lg border border-market-border p-3">
+                  <div className="text-xs text-market-sub">开始时间</div>
+                  <div className="mt-1 text-sm font-semibold text-market-text">{stake.startedAt}</div>
+                </div>
+                <div className="lg:col-span-4">
+                  <button
+                    onClick={() => {
+                      const res = unstakeWeg()
+                      setToast(res.message)
+                      setTimeout(() => setToast(''), 2600)
+                    }}
+                    className="rounded-lg bg-market-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-market-primary-hover"
+                  >
+                    模拟解除（本金 + 收益入账）
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-5 flex flex-wrap items-end gap-3">
+                <div className="w-56">
+                  <div className="mb-1 text-xs text-market-sub">质押数量（WEG）</div>
+                  <input
+                    type="number"
+                    min={1}
+                    value={stakeQty}
+                    onChange={(e) => setStakeQty(Math.max(1, Number(e.target.value) || 1))}
+                    className="w-full rounded-lg border border-market-border px-3 py-2 text-market-text outline-none focus:border-market-primary tnum"
+                  />
+                </div>
+                <div className="text-xs text-market-sub tnum">
+                  需 WEG 余额（当前 {account.wegBalance.toFixed(2)} WEG）
+                </div>
+                <button
+                  onClick={() => {
+                    const res = stakeWeg(stakeQty)
+                    setToast(res.message)
+                    setTimeout(() => setToast(''), 2600)
+                  }}
+                  className="rounded-lg bg-market-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-market-primary-hover"
+                >
+                  模拟质押
+                </button>
+              </div>
+            )}
+
+            <div className="mt-5 flex items-start gap-2.5 rounded-xl bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900 ring-1 ring-amber-300">
+              <span className="mt-0.5 text-lg">⚠️</span>
+              <p>
+                本金、收益及 APY 均为<b> 模拟数据</b>，不涉及真实资产托管或收益承诺。
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-market-border/60">
+            <h3 className="mb-3 text-sm font-bold text-market-text">收益计算说明</h3>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-market-sub">
+              {['质押 WEG', '锁定本金', '年化 8%（模拟）', '按真实时间累积', '随时解除'].map((step, i, arr) => (
+                <span key={step} className="flex items-center gap-2">
+                  <span className="rounded-lg bg-market-bg px-3 py-1.5 font-medium text-market-text">{step}</span>
+                  {i < arr.length - 1 && <span className="text-market-primary">→</span>}
+                </span>
+              ))}
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-market-sub">
+              收益 = 质押数量 × 年化 8% × 持有天数 / 365。解除质押时本金与收益直接回到 WEG 余额。
+            </p>
           </div>
         </div>
       )}
@@ -279,13 +390,21 @@ export default function WegEconomy() {
                 <h2 className="text-lg font-bold text-market-text">AI Contribution · AI 贡献</h2>
                 <p className="mt-1 max-w-2xl text-sm text-market-sub">
                   不做挖矿，而是做贡献。学习、教学、开发、使用——每一份对 AI 生态的真实贡献，
-                  都换算为 WEG 生态积分。右侧任务可一键模拟领取奖励（奖励自动入账模拟资金，¥1 WEG = ¥20 模拟资金）。
+                  都换算为 WEG 生态积分。右侧任务可一键模拟领取奖励（奖励直接入账 WEG 余额）。
                 </p>
               </div>
-              <div className="rounded-lg bg-market-bg px-4 py-2 text-center">
-                <div className="text-xs text-market-sub">我的累计贡献</div>
-                <div className="text-lg font-bold text-market-primary tnum">
-                  {fmtNumber(account.totalEarned)} WEG
+              <div className="flex flex-col gap-2">
+                <div className="rounded-lg bg-market-bg px-4 py-2 text-center">
+                  <div className="text-xs text-market-sub">我的 WEG 余额</div>
+                  <div className="text-lg font-bold text-market-primary tnum">
+                    {fmtNumber(account.wegBalance)} WEG
+                  </div>
+                </div>
+                <div className="rounded-lg bg-market-bg px-4 py-2 text-center">
+                  <div className="text-xs text-market-sub">我的累计贡献</div>
+                  <div className="text-lg font-bold text-market-text tnum">
+                    {fmtNumber(account.totalEarned)} WEG
+                  </div>
                 </div>
               </div>
             </div>

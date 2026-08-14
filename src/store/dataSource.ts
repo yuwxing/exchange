@@ -31,8 +31,8 @@ export type DataSourceAdapter = {
 /** 持久化键命名空间：localStorage 前缀；Supabase 端对应表/行键 */
 export const STORE_NAMESPACE = 'ai-exchange'
 
-/** 账户与交易记录使用的持久化键（保持与历史版本一致，避免旧数据丢失） */
-export const ACCOUNT_STORAGE_KEY = 'ai-exchange-account'
+/** 账户与交易记录使用的持久化键（V3：USDT 计价 + WEG 余额 + AI 信用 的账户体系） */
+export const ACCOUNT_STORAGE_KEY = 'ai-exchange-account-v3'
 
 const localAdapter: DataSourceAdapter = {
   getItem: (name) => {

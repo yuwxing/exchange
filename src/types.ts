@@ -1,28 +1,63 @@
-export type Category = {
+// ============================================================
+// AI Exchange · 全球人工智能资产交易与经济系统
+// V1 数据模型：Asset / Sector / Index / AI Value / AI 智能体
+// ============================================================
+
+/** 资产大类（10 大市场中的 9 类资产 + 生态积分资产） */
+export type AssetType =
+  | 'model' // 01 MODEL  AI 模型
+  | 'agent' // 02 AGENT  智能体
+  | 'skill' // 03 SKILL  技能
+  | 'mcp' //   04 MCP    工具协议
+  | 'app' //   05 APP    AI 应用
+  | 'robot' // 06 ROBOT  机器人
+  | 'data' //  07 DATA   AI 数据
+  | 'infra' // 08 INFRA  算力基础设施
+  | 'protocol' // 09 PROTOCOL  AI 协议
+  | 'economy' //  平台生态积分资产（WEG）
+
+/** 板块定义（10 大板块） */
+export type Sector = {
   id: string
+  code: string // 序号 01-10
   name: string
-  symbol: string
+  symbol: string // emoji
+  type: AssetType
+  prefix: string // 上市代码前缀
+  desc: string
+  weight: number // 板块权重（AI 综合指数）
 }
 
+/** 指标项 */
 export type Metric = {
   label: string
   value: number
 }
 
-export type Stock = {
-  symbol: string
+/**
+ * AI 资产（模拟上市标的）
+ * 兼容旧版 Stock 字段，新增 AI Value / 评级 / 标签 / 发行方 / 子分类
+ */
+export type Asset = {
+  symbol: string // 上市代码，如 AI-OPENAI / AG-CODEX / SK-PPT / MCP-GITHUB
   name: string
   nameEn: string
-  categoryId: string
+  sectorId: string
+  type: AssetType
   description: string
-  basePrice: number
-  volatility: number
-  marketCap: number
-  score: number
-  metrics: Metric[]
-  isWeg: boolean
+  basePrice: number // 虚拟发行价
+  volatility: number // 波动率
+  marketCap: number // 模拟市值（元）
+  score: number // AI 综合评分 0-100
+  aiValue: number // AI Economic Value（AI 市值公式输出）
+  rating: string // S / A / B / C / D
+  metrics: Metric[] // 11 维指标：模型能力/使用量/收入/用户/开发者/Agent活跃/Skill/API调用/增长/生态/可靠性
+  tags: string[]
+  issuer?: string // 所属公司/发行方
+  isWeg?: boolean
 }
 
+/** 实时报价 */
 export type Quote = {
   symbol: string
   price: number
@@ -34,6 +69,7 @@ export type Quote = {
   volume: number
 }
 
+/** K 线 */
 export type Candle = {
   time: string
   open: number
@@ -43,11 +79,31 @@ export type Candle = {
   volume: number
 }
 
+/** 指数定义（AI10 / AI50 / MODEL100 / AGENT100 / SKILL100 / APP100 / ROBOT50 / INFRA50） */
+export type IndexDef = {
+  id: string
+  code: string
+  name: string
+  scope: 'top' | 'sector'
+  count?: number // scope='top' 时取全市场市值 Top N
+  sectorId?: string // scope='sector' 时取该板块成分
+  base: number // 基期基点
+  desc: string
+}
+
+/** 指数实时值 */
+export type IndexValue = {
+  value: number
+  prev: number
+  spark: number[]
+}
+
+/** 新闻事件 */
 export type NewsEvent = {
   id: string
   title: string
   summary: string
-  categoryId: string | null
+  sectorId: string | null
   symbol: string | null
   time: string
   importance: 1 | 2 | 3
@@ -55,6 +111,7 @@ export type NewsEvent = {
   published: boolean
 }
 
+/** 持仓 */
 export type Holding = {
   symbol: string
   name: string
@@ -62,6 +119,7 @@ export type Holding = {
   avgCost: number
 }
 
+/** 委托记录 */
 export type Order = {
   id: string
   symbol: string
@@ -73,6 +131,7 @@ export type Order = {
   time: string
 }
 
+/** 贡献记录 */
 export type ContributionRecord = {
   id: string
   action: string
@@ -81,12 +140,159 @@ export type ContributionRecord = {
   time: string
 }
 
+/** 模拟账户 */
 export type Account = {
-  cash: number
+  cash: number // 模拟 USDT 余额（初始 100,000）
+  wegBalance: number // WEG 生态积分余额（初始 10,000）
+  aiCredit: number // AI 信用分（初始 100）
   holdings: Holding[]
   orders: Order[]
   contributions: ContributionRecord[]
   totalEarned: number
   level: number
   experience: number
+}
+
+/** ============ AI Intelligence 层 ============ */
+
+/** 六大 AI 智能体：Research / Valuation / Market / Risk / News / Portfolio */
+export type AgentId =
+  | 'research'
+  | 'valuation'
+  | 'market'
+  | 'risk'
+  | 'news'
+  | 'portfolio'
+
+/** 智能体输出报告 */
+export type AgentReport = {
+  agentId: AgentId
+  agentName: string
+  agentIcon: string
+  agentRole: string
+  title: string
+  time: string
+  summary: string
+  points: string[]
+  score?: number
+  level?: string
+  action?: string
+  linkedSymbol?: string
+}
+
+/** AI 市场日报 */
+export type DailyReport = {
+  date: string
+  title: string
+  summary: string
+  sections: { label: string; text: string }[]
+  agentCount: number
+  generatedAt: string
+}
+
+/** 候选资产（AI Research Agent 自动发现、可一键模拟上市） */
+export type CandidateAsset = {
+  symbol: string
+  name: string
+  nameEn: string
+  type: AssetType
+  sectorId: string
+  description: string
+  basePrice: number
+  marketCap: number
+  score: number
+  tags: string[]
+}
+
+/** ============ V2 · 前沿化扩展 ============ */
+
+/** AI 情绪指数（恐惧-贪婪） */
+export type SentimentState = {
+  score: number // 0-100，0 极度恐惧 / 100 极度贪婪
+  level: '极度恐惧' | '恐惧' | '中性' | '贪婪' | '极度贪婪'
+  prev: number
+  history: number[]
+  drivers: { label: string; value: number; weight: number }[]
+}
+
+/** AI 巨鲸（模拟机构） */
+export type Whale = {
+  id: string
+  name: string
+  nameEn: string
+  icon: string
+  color: string
+  focus: string // 关注板块描述
+  focusSectorId: string
+  capital: number // 模拟管理规模（元）
+}
+
+/** 机构对某资产的多空仓位 */
+export type WhaleFlow = {
+  whaleId: string
+  symbol: string
+  direction: 'long' | 'short'
+  amount: number // 模拟净流入金额
+  since: string
+  updatedAt: string
+}
+
+/** 巨鲸大单动态 */
+export type WhaleTrade = {
+  id: string
+  whaleId: string
+  whaleName: string
+  whaleIcon: string
+  symbol: string
+  direction: 'long' | 'short'
+  amount: number
+  time: string
+}
+
+/** AI 机会雷达结果 */
+export type Opportunity = {
+  symbol: string
+  name: string
+  sectorId: string
+  type: AssetType
+  score: number
+  aiValue: number
+  price: number
+  changePct: number
+  tag: '低估值' | '高增长' | '资金流入' | '强势突破'
+  reason: string
+}
+
+/** 限价/条件挂单 */
+export type OpenOrder = {
+  id: string
+  symbol: string
+  name: string
+  kind: 'limit' | 'stopLoss' | 'takeProfit'
+  side: 'buy' | 'sell'
+  price: number
+  quantity: number
+  status: 'pending' | 'filled' | 'cancelled'
+  createdAt: string
+}
+
+/** 模拟合约仓位 */
+export type ContractPosition = {
+  id: string
+  symbol: string
+  name: string
+  side: 'long' | 'short'
+  leverage: number // 2/5/10
+  quantity: number
+  entryPrice: number
+  margin: number
+  openedAt: string
+}
+
+/** WEG 金库质押 */
+export type Stake = {
+  amount: number // 质押的 WEG 数量
+  startedAt: string
+  apr: number // 模拟年化 %
+  accrued: number // 已累计收益 WEG
 }
