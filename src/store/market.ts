@@ -7,11 +7,13 @@ import { persist } from 'zustand/middleware'
 import type {
   Account,
   AgentReport,
+  AiGdp,
   Asset,
   Candle,
   ContractPosition,
   DailyReport,
   IndexValue,
+  MarketEngineRun,
   NewsEvent,
   OpenOrder,
   Opportunity,
@@ -54,6 +56,8 @@ import {
   runRisk,
   runValuation,
 } from '../ai/intelligence'
+import { runMarketEngine } from '../ai/marketEngine'
+import { initAiGdp, updateAiGdp } from '../ai/gdp'
 
 export const INITIAL_CASH = 100000
 export const INITIAL_WEG = 10000
@@ -110,6 +114,8 @@ type MarketState = {
   newsImpacts: Record<string, number>
   lastAttribution: Record<string, PriceAttribution>
   attributionTick: number
+  engineRun: MarketEngineRun | null
+  gdp: AiGdp
   tick: () => void
   fireNews: () => NewsEvent | null
   publishNews: (id: string) => void
@@ -127,6 +133,7 @@ type MarketState = {
   generateReport: () => DailyReport
   listCandidate: (symbol: string) => { ok: boolean; message: string }
   runRadar: () => Opportunity[]
+  runEngine: () => MarketEngineRun
   allAssets: () => Asset[]
 }
 
@@ -360,6 +367,8 @@ export const useMarket = create<MarketState>()(
         newsImpacts: {},
         lastAttribution: {},
         attributionTick: 0,
+        engineRun: null,
+        gdp: initAiGdp(),
 
         allAssets: () => [...ASSETS, ...get().extraAssets],
 
@@ -640,6 +649,7 @@ export const useMarket = create<MarketState>()(
             newsImpacts: nextNewsImpacts,
             lastAttribution: recordAtt ? { ...st.lastAttribution, ...nextAttribution } : st.lastAttribution,
             attributionTick: attTick,
+            gdp: updateAiGdp(st.gdp, indicesEco, sentiment.score, nextSectors, SECTORS.map((s) => s.id)),
           })
         },
 
@@ -839,6 +849,28 @@ export const useMarket = create<MarketState>()(
           const ops = runRadar(all, st.quotes, st.whaleFlows)
           set({ radar: ops })
           return ops
+        },
+
+        // ---- AI Market Engine：七阶段流水线 ----
+        runEngine: () => {
+          const st = get()
+          const all = [...ASSETS, ...st.extraAssets]
+          const run = runMarketEngine({
+            assets: all,
+            quotes: st.quotes,
+            sectors: st.sectors,
+            sectorList: SECTORS,
+            indices: st.indices,
+            sentiment: st.sentiment,
+            whaleFlows: st.whaleFlows,
+            news: st.news,
+            candidates: st.candidates,
+            cyclePhase: st.cyclePhase,
+            assetDynamics: st.assetDynamics,
+            newsImpacts: st.newsImpacts,
+          })
+          set({ engineRun: run })
+          return run
         },
 
         // ---- Pro Trade：挂单（限价/止损/止盈）----

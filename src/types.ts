@@ -296,3 +296,90 @@ export type Stake = {
   apr: number // 模拟年化 %
   accrued: number // 已累计收益 WEG
 }
+
+/** ============ V3 · AI Market Engine（AI 金融系统核心） ============ */
+
+/** AI Market Engine 七阶段流水线 */
+export type EngineStageId =
+  | 'research'
+  | 'valuation'
+  | 'news'
+  | 'sentiment'
+  | 'market'
+  | 'price'
+  | 'index'
+
+/** 引擎单阶段输出 */
+export type EngineStageResult = {
+  id: EngineStageId
+  name: string
+  icon: string
+  title: string
+  summary: string
+  points: string[]
+  value?: number
+  valueLabel?: string
+  level?: string
+}
+
+/** 引擎运行上下文（由市场 store 组装） */
+export type EngineContext = {
+  assets: Asset[]
+  quotes: Record<string, Quote>
+  sectors: Record<string, { value: number; prev: number }>
+  sectorList: Sector[]
+  indices: Record<string, IndexValue>
+  sentiment: SentimentState
+  whaleFlows: WhaleFlow[]
+  news: NewsEvent[]
+  candidates: CandidateAsset[]
+  cyclePhase: number
+  assetDynamics: Record<string, { usage: number; growth: number }>
+  newsImpacts: Record<string, number>
+}
+
+/** 引擎一次运行结果 */
+export type MarketEngineRun = {
+  id: string
+  time: string
+  stages: EngineStageResult[]
+  signal: { label: string; score: number; advice: string }
+  indexForecast: { name: string; current: number; target: number; pct: number }[]
+  riskNote: string
+}
+
+/** ============ V3 · AI GDP（AI 经济总量） ============ */
+
+/** AI GDP 板块构成（按市场板块划分） */
+export type GdpSector = {
+  id: string
+  name: string // Model Economy / Agent Economy ...
+  label: string // 中文名
+  icon: string
+  share: number // 占 AI GDP %
+  value: number // 产值 $T
+  trend: number // 环比增速 %
+  color: string
+}
+
+/** AI GDP 经济活动分解（生产/服务/劳动/算力/应用/机器人） */
+export type GdpCategory = {
+  id: string
+  name: string // AI Production / AI Services ...
+  label: string // 中文名
+  icon: string
+  share: number // 占 AI GDP %
+  value: number // 产值 $T
+  desc: string
+}
+
+/** AI GDP 总览 */
+export type AiGdp = {
+  total: number // 总 GDP（万亿美元）
+  growth: number // 同比增速 %
+  prev: number // 上期总量
+  trend: number // 环比增速 %
+  updatedAt: string
+  sectors: GdpSector[]
+  categories: GdpCategory[]
+}

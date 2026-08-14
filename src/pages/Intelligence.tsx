@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useMarket } from '../store/market'
 import { AGENT_META } from '../ai/intelligence'
 import AdvisorChat from '../components/AdvisorChat'
+import MarketEngine from '../components/MarketEngine'
 import type { AgentId } from '../types'
 
 export default function Intelligence() {
@@ -102,6 +103,9 @@ export default function Intelligence() {
           </div>
         </div>
       </div>
+
+      {/* AI Market Engine：七阶段端到端流水线 */}
+      <MarketEngine />
 
       {/* AI 顾问对话 */}
       <AdvisorChat />

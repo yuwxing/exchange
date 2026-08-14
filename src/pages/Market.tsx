@@ -7,6 +7,7 @@ import AssetCard from '../components/AssetCard'
 import SentimentGauge from '../components/SentimentGauge'
 import WhaleFeed from '../components/WhaleFeed'
 import SectorHeat from '../components/SectorHeat'
+import AiGdp from '../components/AiGdp'
 import { fmtNumber } from '../utils/format'
 
 export default function Market() {
@@ -72,6 +73,9 @@ export default function Market() {
       </section>
 
       <IndexPanel />
+
+      {/* AI GDP：全球 AI 经济总量（经济模拟器核心） */}
+      <AiGdp />
 
       {/* 市场脉搏：AI 情绪指数 + 巨鲸动态 */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
