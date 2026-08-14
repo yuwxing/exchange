@@ -500,3 +500,65 @@ export type AiCompanyRole = {
   icon: string
   share: number // %
 }
+
+/** ============ V4 · AI Capital OS（资本入口） ============ */
+
+/** 投资目标 */
+export type CapitalGoalId =
+  | 'preserve' // 保值
+  | 'stable' // 稳定增长
+  | 'beat' // 超越市场
+  | 'aiGrowth' // AI 产业增长
+  | 'aggressive' // 高风险高收益
+  | 'aiManaged' // 让 AI 自己管理
+
+export type CapitalGoal = {
+  id: CapitalGoalId
+  label: string
+  icon: string
+  desc: string
+  risk: '低' | '中低' | '中' | '中高' | '高' | '动态'
+  expectedMin: number // 预期年化下限 %
+  expectedMax: number
+}
+
+/** AI Capital Plan · 资本配置方案 */
+export type CapitalPlan = {
+  id: string
+  createdAt: string
+  amount: number // 资本规模 $
+  amountLabel: string
+  goal: CapitalGoal
+  riskLevel: string
+  expectedAnnual: string // 预期年化区间文案
+  allocation: { sectorId: string; name: string; icon: string; pct: number }[] // 板块配置
+  topAssets: { symbol: string; name: string; pct: number; reason: string }[] // 推荐资产
+  strategy: string[] // 策略要点
+  rebalance: string // 再平衡计划
+  lifecycle: { step: number; icon: string; name: string; en: string; desc: string }[] // 资金闭环
+  note: string
+}
+
+/** AI Capital OS · 闭环运行态（资本进入 → 生产 → 收入 → 利润回流 → 再平衡） */
+export type CapitalOsState = {
+  active: boolean
+  planId: string
+  goalId: CapitalGoalId
+  goalLabel: string
+  goalIcon: string
+  amount: number // 初始资本规模（USDT）
+  invested: number // 已部署到 AI 企业的资本（持仓成本）
+  laborUnits: number // AI 劳动力规模（Agent 数量）
+  laborOutput: number // 累计劳动产出（任务单位）
+  serviceRevenue: number // 累计服务收入（USDT）
+  profitReturned: number // 累计利润回流（分红入账 USDT）
+  retained: number // 留存再投资利润（USDT）
+  rebalances: number // 再平衡次数
+  lastRebalanceAt: string
+  startedAt: string
+  lastAccrualAt: number // 上次结算时间戳（ms）
+  targets: { symbol: string; name: string; pct: number }[] // 目标配置（pct 占已部署资本）
+  nav: number // 当前组合净值（现金 + 持仓市值）
+  driftPct: number // 配置偏离度（%）
+  history: { t: string; revenue: number; profit: number; nav: number }[] // 运行快照
+}

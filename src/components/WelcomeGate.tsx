@@ -2,7 +2,7 @@ import { useMarket } from '../store/market'
 import { fmtNumber } from '../utils/format'
 
 /** 首次进入欢迎页：展示模拟账户结构，明确「这是模拟系统」 */
-export default function WelcomeGate({ onStart }: { onStart: () => void }) {
+export default function WelcomeGate({ onStart }: { onStart: (path?: string) => void }) {
   const account = useMarket((s) => s.account)
 
   const assets = [
@@ -44,10 +44,16 @@ export default function WelcomeGate({ onStart }: { onStart: () => void }) {
         </div>
 
         <button
-          onClick={onStart}
-          className="mt-6 w-full rounded-xl bg-market-primary py-3.5 text-base font-bold text-white shadow-lg transition-all hover:bg-market-primary-hover hover:shadow-xl active:scale-[0.99]"
+          onClick={() => onStart('/capital')}
+          className="mt-6 w-full rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 py-3.5 text-base font-bold text-white shadow-lg transition-all hover:from-amber-400 hover:to-amber-300 hover:shadow-xl active:scale-[0.99]"
         >
-          开始 AI 投资模拟 →
+          💰 进入 AI Capital OS（总入口）→
+        </button>
+        <button
+          onClick={() => onStart('/')}
+          className="mt-2 w-full rounded-xl border border-market-border bg-white py-2.5 text-sm font-semibold text-market-sub transition-colors hover:bg-market-bg hover:text-market-text"
+        >
+          直接进入行情大厅 →
         </button>
         <p className="mt-3 text-center text-[11px] text-market-sub">模拟交易 · 教育演示 · 无真实资金</p>
       </div>

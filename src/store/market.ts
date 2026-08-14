@@ -10,6 +10,8 @@ import type {
   AiGdp,
   Asset,
   Candle,
+  CapitalOsState,
+  CapitalPlan,
   ContractPosition,
   DailyReport,
   IndexValue,
@@ -58,6 +60,7 @@ import {
 } from '../ai/intelligence'
 import { runMarketEngine } from '../ai/marketEngine'
 import { initAiGdp, updateAiGdp } from '../ai/gdp'
+import { deactivateCapitalOs, initCapitalOs, runCapitalOsTick } from '../ai/capitalOs'
 
 export const INITIAL_CASH = 100000
 export const INITIAL_WEG = 10000
@@ -109,6 +112,7 @@ type MarketState = {
   openOrders: OpenOrder[]
   contracts: ContractPosition[]
   stake: Stake | null
+  capitalOs: CapitalOsState | null
   cyclePhase: number
   assetDynamics: Record<string, { usage: number; growth: number }>
   newsImpacts: Record<string, number>
@@ -134,6 +138,8 @@ type MarketState = {
   listCandidate: (symbol: string) => { ok: boolean; message: string }
   runRadar: () => Opportunity[]
   runEngine: () => MarketEngineRun
+  applyCapitalPlan: (amount: number, plan?: CapitalPlan) => { ok: boolean; message: string }
+  deactivateCapitalOs: () => void
   allAssets: () => Asset[]
 }
 
@@ -362,6 +368,7 @@ export const useMarket = create<MarketState>()(
         openOrders: [],
         contracts: [],
         stake: null,
+        capitalOs: null,
         cyclePhase: 0,
         assetDynamics: initDynamics(),
         newsImpacts: {},
@@ -626,6 +633,14 @@ export const useMarket = create<MarketState>()(
             stake = { ...stake, accrued: round2(accrued) }
           }
 
+          // ---- AI Capital OS：资本闭环运行（劳动力→服务收入→利润回流→再平衡）----
+          let capitalOs = st.capitalOs
+          if (capitalOs?.active) {
+            const r = runCapitalOsTick(capitalOs, account, nextQuotes, indicesEco, sentiment)
+            capitalOs = r.cap
+            account = r.account
+          }
+
           set({
             quotes: nextQuotes,
             sectors: nextSectors,
@@ -643,6 +658,7 @@ export const useMarket = create<MarketState>()(
             openOrders,
             contracts,
             stake,
+            capitalOs,
             account,
             cyclePhase,
             assetDynamics: nextDynamics,
@@ -779,6 +795,59 @@ export const useMarket = create<MarketState>()(
         },
 
         resetAccount: () => set({ account: defaultAccount() }),
+
+        // ---- AI Capital OS：应用资本方案到模拟账户 ----
+        // 资本进入 → AI 配置 → AI 自动投资 AI 企业（按方案买入）→ 启动闭环运行
+        applyCapitalPlan: (amount, plan) => {
+          const st = get()
+          const amt = Math.max(100, Math.round(amount))
+          let account: Account = {
+            ...defaultAccount(),
+            cash: round2(amt),
+            wegBalance: st.account.wegBalance,
+            aiCredit: st.account.aiCredit,
+          }
+          let capitalOs: CapitalOsState | null = null
+          const buys: { symbol: string; name: string; cost: number }[] = []
+          let invested = 0
+          if (plan && plan.topAssets.length > 0) {
+            // 92% 部署到 AI 企业，8% 留作现金储备（供 AI 再平衡调仓）
+            for (const t of plan.topAssets) {
+              const price = st.quotes[t.symbol]?.price ?? assetOf(t.symbol)?.basePrice ?? 10
+              const qty = Math.floor(((amt * t.pct) / 100 / price) * 0.92)
+              if (qty <= 0) continue
+              const cost = round2(qty * price)
+              if (cost > account.cash) continue
+              account = executeSpot(account, t.symbol, t.name, 'buy', qty, price)
+              buys.push({ symbol: t.symbol, name: t.name, cost })
+              invested += cost
+            }
+            capitalOs = initCapitalOs({
+              planId: plan.id,
+              amount: amt,
+              invested,
+              goal: plan.goal,
+              buys,
+            })
+          }
+          set({
+            account,
+            contracts: [],
+            openOrders: [],
+            capitalOs,
+          })
+          const deployedPct = amt > 0 ? Math.round((invested / amt) * 100) : 0
+          const investedLabel = invested > 0 ? `，AI 已自动投资 ${buys.length} 家 AI 企业（${deployedPct}% 已部署）` : ''
+          return {
+            ok: true,
+            message: `已按 $${amt.toLocaleString('zh-CN')} 启动 AI Capital OS 闭环${investedLabel}：资本进入 → 劳动力生产 → 服务收入 → 利润回流 → 再平衡`,
+          }
+        },
+
+        deactivateCapitalOs: () => {
+          const st = get()
+          set({ capitalOs: deactivateCapitalOs(st.capitalOs) })
+        },
 
         // ---- AI 智能体运行 ----
         runAgent: (agentId, symbol) => {
@@ -1009,6 +1078,7 @@ export const useMarket = create<MarketState>()(
         openOrders: state.openOrders,
         contracts: state.contracts,
         stake: state.stake,
+        capitalOs: state.capitalOs,
       }),
       // 旧版/缺字段数据兼容：水合时补齐账户默认字段，避免缺失字段崩溃
       merge: (persisted, current) => {

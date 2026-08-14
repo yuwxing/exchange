@@ -4,6 +4,7 @@ import { useMarket } from '../store/market'
 import { fmtNumber } from '../utils/format'
 
 const NAV = [
+  { to: '/capital', label: 'CAPITAL', icon: '💰', end: false, capital: true },
   { to: '/', label: '行情大厅', icon: '📊', end: true },
   { to: '/assets', label: '资产市场', icon: '🏛️' },
   { to: '/index', label: '指数中心', icon: '🧮' },
@@ -47,15 +48,26 @@ export default function Layout() {
                   to={item.to}
                   end={item.end}
                   className={({ isActive }) =>
-                    `flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-market-primary/10 text-market-primary'
-                        : 'text-market-sub hover:bg-market-bg hover:text-market-text'
-                    }`
+                    item.capital
+                      ? `relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold transition-colors ${
+                          isActive
+                            ? 'bg-amber-400/15 text-amber-600 ring-1 ring-amber-400/40'
+                            : 'bg-gradient-to-r from-amber-400/10 to-amber-500/10 text-amber-600 ring-1 ring-amber-400/30 hover:from-amber-400/20 hover:to-amber-500/20'
+                        }`
+                      : `flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                          isActive
+                            ? 'bg-market-primary/10 text-market-primary'
+                            : 'text-market-sub hover:bg-market-bg hover:text-market-text'
+                        }`
                   }
                 >
                   <span>{item.icon}</span>
                   {item.label}
+                  {item.capital && (
+                    <span className="rounded bg-amber-500 px-1 py-0.5 text-[9px] font-bold leading-none text-white">
+                      总入口
+                    </span>
+                  )}
                 </NavLink>
               ))}
             </div>
@@ -83,12 +95,16 @@ export default function Layout() {
                 to={item.to}
                 end={item.end}
                 className={({ isActive }) =>
-                  `shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium ${
-                    isActive ? 'bg-market-primary/10 text-market-primary' : 'text-market-sub'
-                  }`
+                  item.capital
+                    ? `shrink-0 rounded-lg px-3 py-1.5 text-xs font-bold ${
+                        isActive ? 'bg-amber-400/15 text-amber-600' : 'bg-amber-400/10 text-amber-600'
+                      }`
+                    : `shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium ${
+                        isActive ? 'bg-market-primary/10 text-market-primary' : 'text-market-sub'
+                      }`
                 }
               >
-                {item.label}
+                {item.icon} {item.label}
               </NavLink>
             ))}
           </div>

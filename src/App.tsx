@@ -5,6 +5,7 @@ import WelcomeGate from './components/WelcomeGate'
 
 // 路由级代码分割：首屏只加载当前页，其余按需分包
 const Market = lazy(() => import('./pages/Market'))
+const Capital = lazy(() => import('./pages/Capital'))
 const Assets = lazy(() => import('./pages/Assets'))
 const AssetDetail = lazy(() => import('./pages/AssetDetail'))
 const AIIndex = lazy(() => import('./pages/AIIndex'))
@@ -28,16 +29,19 @@ function AppInner() {
       return false
     }
   })
+  // 欢迎页选择的总入口（默认行情大厅；选 CAPITAL 则直达 AI Capital OS）
+  const [startPath, setStartPath] = useState('/')
 
   if (!welcomed) {
     return (
       <WelcomeGate
-        onStart={() => {
+        onStart={(path = '/') => {
           try {
             localStorage.setItem(WELCOME_KEY, '1')
           } catch {
             // ignore
           }
+          setStartPath(path)
           setWelcomed(true)
         }}
       />
@@ -48,8 +52,10 @@ function AppInner() {
     <HashRouter>
       <Suspense fallback={<PageLoading />}>
         <Routes>
+          {startPath !== '/' && <Route path="/" element={<Navigate to={startPath} replace />} />}
           <Route element={<Layout />}>
             <Route path="/" element={<Market />} />
+            <Route path="/capital" element={<Capital />} />
             <Route path="/assets" element={<Assets />} />
             <Route path="/asset/:symbol" element={<AssetDetail />} />
             <Route path="/index" element={<AIIndex />} />

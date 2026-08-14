@@ -8,6 +8,7 @@ import SentimentGauge from '../components/SentimentGauge'
 import WhaleFeed from '../components/WhaleFeed'
 import SectorHeat from '../components/SectorHeat'
 import AiGdp from '../components/AiGdp'
+import { fmtNumber } from '../utils/format'
 
 export default function Market() {
   const quotes = useMarket((s) => s.quotes)
@@ -18,6 +19,7 @@ export default function Market() {
   const aiReports = useMarket((s) => s.aiReports)
   const sentiment = useMarket((s) => s.sentiment)
   const whaleFlows = useMarket((s) => s.whaleFlows)
+  const capitalOs = useMarket((s) => s.capitalOs)
   const [activeSector, setActiveSector] = useState<string>('all')
   const navigate = useNavigate()
 
@@ -68,6 +70,42 @@ export default function Market() {
             本平台为 <b>AI 产业经济模拟与教育研究平台</b>。所有资产、行情、交易、指数、合约及收益均为
             <b> 模拟数据</b>，不代表真实证券、金融产品或数字资产。
           </p>
+        </div>
+      </section>
+
+      {/* AI Capital OS · 资本总入口 */}
+      <section className="rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent p-4 ring-1 ring-amber-400/30">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-xl text-white shadow">
+              💰
+            </span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-black text-market-text">AI Capital OS</span>
+                <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 ring-1 ring-amber-400/40">
+                  资本总入口
+                </span>
+                {capitalOs?.active && (
+                  <span className="flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-400/30">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                    闭环运行中
+                  </span>
+                )}
+              </div>
+              <p className="mt-0.5 truncate text-xs text-market-sub">
+                资本进入 → AI 理解 → 配置 → 机会 → 投资 AI 企业 → AI 劳动力 → 服务收入 → 利润回资本 → 再平衡
+                {capitalOs?.active &&
+                  ` · 净值 $${fmtNumber(capitalOs.nav)} · 服务收入 $${fmtNumber(capitalOs.serviceRevenue)} · 利润回流 $${fmtNumber(capitalOs.profitReturned)} · 再平衡 ${capitalOs.rebalances} 次`}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/capital')}
+            className="shrink-0 rounded-lg bg-amber-500 px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-amber-600"
+          >
+            {capitalOs?.active ? '进入闭环驾驶舱 →' : '启动 AI Capital OS →'}
+          </button>
         </div>
       </section>
 
