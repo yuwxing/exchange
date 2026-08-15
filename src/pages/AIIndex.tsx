@@ -158,23 +158,23 @@ export default function AIIndex() {
                 <Link
                   key={asset.symbol}
                   to={`/asset/${asset.symbol}`}
-                  className="flex items-center justify-between rounded-lg border border-market-border px-4 py-2.5 transition-colors hover:border-market-primary/50"
+                  className="flex items-center justify-between gap-2 rounded-lg border border-market-border px-3 py-2.5 transition-colors hover:border-market-primary/50 sm:gap-3 sm:px-4"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="font-bold text-market-text">{asset.symbol}</span>
-                    <span className="text-sm text-market-sub">{asset.name}</span>
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="shrink-0 text-sm font-bold text-market-text">{asset.symbol}</span>
+                    <span className="truncate text-sm text-market-sub">{asset.name}</span>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="w-16 text-right text-sm font-semibold text-market-text tnum">
+                  <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+                    <span className="w-14 text-right text-sm font-semibold text-market-text tnum sm:w-16">
                       ${fmtNumber(q.price)}
                     </span>
                     <span
-                      className={`w-16 text-right text-sm font-semibold tnum ${isUp(q.change) ? 'text-market-up' : 'text-market-down'}`}
+                      className={`w-14 text-right text-sm font-semibold tnum sm:w-16 ${isUp(q.change) ? 'text-market-up' : 'text-market-down'}`}
                     >
                       {isUp(q.change) ? '+' : ''}
                       {(q.changePct * 100).toFixed(2)}%
                     </span>
-                    <span className="w-16 text-right text-sm text-market-sub tnum">
+                    <span className="hidden w-16 text-right text-sm text-market-sub tnum md:block">
                       {fmtCompact(asset.marketCap)}
                     </span>
                   </div>
