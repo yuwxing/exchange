@@ -562,3 +562,89 @@ export type CapitalOsState = {
   driftPct: number // 配置偏离度（%）
   history: { t: string; revenue: number; profit: number; nav: number }[] // 运行快照
 }
+
+/** ============ V5 · AI 经济三引擎（Demand / Production / Ledger） ============ */
+
+/** 需求品类（对应人类真实需求 → AI 经济工作流） */
+export type DemandCategory = '研发' | '运营' | '数据' | '内容' | '客服' | '研究'
+
+/** ① Demand Engine · 市场需求订单 */
+export type DemandOrder = {
+  id: string
+  category: DemandCategory
+  title: string
+  value: number // 订单金额（$）
+  status: 'open' | 'competing' | 'fulfilled' // 需求 → 竞标 → 成交
+  bidders: { symbol: string; name: string; score: number }[] // 参与竞争的企业
+  winnerSymbol?: string
+  winnerName?: string
+  createdAt: string
+  fulfilledAt?: string
+}
+
+/** ① Demand Engine · 状态（人类需求 → 市场订单 → 企业竞争） */
+export type DemandEngineState = {
+  active: boolean
+  totalDemand: number // 累计需求金额
+  fulfilledValue: number // 累计成交金额
+  orders: DemandOrder[] // 最近订单（含竞争与成交）
+  categoryHeat: Record<DemandCategory, number> // 品类需求热度 0-100
+  lastOrderAt: string
+}
+
+/** ② Production Engine · AI Worker 生产单元 */
+export type AiWorkerUnit = {
+  id: string
+  symbol: string // 归属 AI 企业（上市代码）
+  name: string
+  skill: string // 调用 Skill
+  compute: string // 消耗 Compute
+  efficiency: number // 效率倍率 0.6-1.5
+  wageRate: number // 工资 $/秒
+  output: number // 累计产出（任务量）
+  cost: number // 累计算力成本（$）
+  status: 'idle' | 'working'
+}
+
+/** ② Production Engine · 生产完成记录 */
+export type ProductionRun = {
+  id: string
+  workerId: string
+  orderId: string
+  output: number
+  time: string
+}
+
+/** ② Production Engine · 状态（Worker + Skill + Compute + Time → Production） */
+export type ProductionEngineState = {
+  active: boolean
+  workers: AiWorkerUnit[]
+  totalOutput: number // 累计产出
+  totalComputeCost: number // 累计算力成本
+  totalWage: number // 累计工资
+  runs: ProductionRun[]
+}
+
+/** ③ Economic Ledger · 资金流类型 */
+export type LedgerType = 'revenue' | 'cost' | 'wage' | 'profit' | 'investment' | 'dividend'
+
+/** ③ Economic Ledger · 账本条目 */
+export type LedgerEntry = {
+  id: string
+  type: LedgerType
+  amount: number // 正=流入，负=流出
+  symbol?: string
+  note: string
+  time: string
+}
+
+/** ③ Economic Ledger · 状态（收入/成本/工资/利润/投资/分红） */
+export type EconomicLedgerState = {
+  entries: LedgerEntry[]
+  revenue: number // 累计收入
+  cost: number // 累计成本（算力）
+  wage: number // 累计工资
+  profit: number // 累计利润
+  investment: number // 累计再投资（留存）
+  dividend: number // 累计分红（回流资本）
+}

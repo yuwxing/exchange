@@ -14,11 +14,14 @@ import type {
   CapitalPlan,
   ContractPosition,
   DailyReport,
+  DemandEngineState,
+  EconomicLedgerState,
   IndexValue,
   MarketEngineRun,
   NewsEvent,
   OpenOrder,
   Opportunity,
+  ProductionEngineState,
   Quote,
   SentimentState,
   Stake,
@@ -60,7 +63,11 @@ import {
 } from '../ai/intelligence'
 import { runMarketEngine } from '../ai/marketEngine'
 import { initAiGdp, updateAiGdp } from '../ai/gdp'
-import { deactivateCapitalOs, initCapitalOs, runCapitalOsTick } from '../ai/capitalOs'
+import { deactivateCapitalOs, initCapitalOs } from '../ai/capitalOs'
+import { initDemandEngine } from '../ai/demandEngine'
+import { initProductionEngine } from '../ai/productionEngine'
+import { initLedger } from '../ai/economicLedger'
+import { runEconomyTick } from '../ai/economy'
 
 export const INITIAL_CASH = 100000
 export const INITIAL_WEG = 10000
@@ -113,6 +120,9 @@ type MarketState = {
   contracts: ContractPosition[]
   stake: Stake | null
   capitalOs: CapitalOsState | null
+  demand: DemandEngineState
+  production: ProductionEngineState
+  ledger: EconomicLedgerState
   cyclePhase: number
   assetDynamics: Record<string, { usage: number; growth: number }>
   newsImpacts: Record<string, number>
@@ -369,6 +379,9 @@ export const useMarket = create<MarketState>()(
         contracts: [],
         stake: null,
         capitalOs: null,
+        demand: initDemandEngine(),
+        production: initProductionEngine(),
+        ledger: initLedger(),
         cyclePhase: 0,
         assetDynamics: initDynamics(),
         newsImpacts: {},
@@ -633,11 +646,17 @@ export const useMarket = create<MarketState>()(
             stake = { ...stake, accrued: round2(accrued) }
           }
 
-          // ---- AI Capital OS：资本闭环运行（劳动力→服务收入→利润回流→再平衡）----
+          // ---- AI Economy 三引擎：需求→订单→竞争 + 生产 + 账本（收入/成本/工资/利润/投资/分红）----
           let capitalOs = st.capitalOs
+          let demand = st.demand
+          let production = st.production
+          let ledger = st.ledger
           if (capitalOs?.active) {
-            const r = runCapitalOsTick(capitalOs, account, nextQuotes, indicesEco, sentiment)
-            capitalOs = r.cap
+            const r = runEconomyTick(capitalOs, demand, production, ledger, account, nextQuotes, all, indicesEco, sentiment)
+            capitalOs = r.capitalOs
+            demand = r.demand
+            production = r.production
+            ledger = r.ledger
             account = r.account
           }
 
@@ -659,6 +678,9 @@ export const useMarket = create<MarketState>()(
             contracts,
             stake,
             capitalOs,
+            demand,
+            production,
+            ledger,
             account,
             cyclePhase,
             assetDynamics: nextDynamics,
@@ -835,6 +857,9 @@ export const useMarket = create<MarketState>()(
             contracts: [],
             openOrders: [],
             capitalOs,
+            demand: initDemandEngine(),
+            production: initProductionEngine(),
+            ledger: initLedger(),
           })
           const deployedPct = amt > 0 ? Math.round((invested / amt) * 100) : 0
           const investedLabel = invested > 0 ? `，AI 已自动投资 ${buys.length} 家 AI 企业（${deployedPct}% 已部署）` : ''
@@ -1079,6 +1104,9 @@ export const useMarket = create<MarketState>()(
         contracts: state.contracts,
         stake: state.stake,
         capitalOs: state.capitalOs,
+        demand: state.demand,
+        production: state.production,
+        ledger: state.ledger,
       }),
       // 旧版/缺字段数据兼容：水合时补齐账户默认字段，避免缺失字段崩溃
       merge: (persisted, current) => {
@@ -1100,6 +1128,9 @@ export const useMarket = create<MarketState>()(
             level: typeof oldAccount.level === 'number' ? oldAccount.level : 1,
             experience: typeof oldAccount.experience === 'number' ? oldAccount.experience : 0,
           },
+          demand: p.demand ?? current.demand,
+          production: p.production ?? current.production,
+          ledger: p.ledger ?? current.ledger,
         }
       },
     },

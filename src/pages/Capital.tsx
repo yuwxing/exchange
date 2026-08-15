@@ -3,7 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useMarket } from '../store/market'
 import { CAPITAL_GOALS, CAPITAL_LIFECYCLE, CAPITAL_TIERS, generateCapitalPlan, fmtCapital } from '../ai/capital'
 import { annualizedReturn } from '../ai/capitalOs'
-import type { CapitalGoalId, CapitalOsState, CapitalPlan } from '../types'
+import { DEMAND_CATEGORIES, demandCategoryIcon } from '../ai/demandEngine'
+import { LEDGER_ICONS, LEDGER_LABELS } from '../ai/economicLedger'
+import type { CapitalGoalId, CapitalOsState, CapitalPlan, DemandEngineState, EconomicLedgerState, ProductionEngineState } from '../types'
 import { fmtNumber } from '../utils/format'
 import { Sparkline } from '../components/Sparkline'
 
@@ -402,6 +404,9 @@ function LoopDashboard({ cap, onStop }: { cap: CapitalOsState; onStop: () => voi
   const quotes = useMarket((s) => s.quotes)
   const radar = useMarket((s) => s.radar)
   const sentiment = useMarket((s) => s.sentiment)
+  const demand = useMarket((s) => s.demand)
+  const production = useMarket((s) => s.production)
+  const ledger = useMarket((s) => s.ledger)
   const navigate = useNavigate()
 
   const holdValue = account.holdings.reduce((s, h) => s + h.quantity * (quotes[h.symbol]?.price ?? h.avgCost), 0)
@@ -482,6 +487,9 @@ function LoopDashboard({ cap, onStop }: { cap: CapitalOsState; onStop: () => voi
           利润分配：服务收入 × 30% 利润率 → 60% 分红回流账户现金（利润回到资本），40% 留存企业再投资；AI 再平衡按目标配置自动调仓。
         </p>
       </div>
+
+      {/* AI 经济三引擎 */}
+      <EconomyEngines demand={demand} production={production} ledger={ledger} />
 
       {/* 曲线 */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -573,6 +581,199 @@ function PlanStat({ label, value, sub }: { label: string; value: string; sub?: s
       <div className="text-xs text-market-sub">{label}</div>
       <div className="mt-1 text-lg font-bold text-market-text tnum">{value}</div>
       {sub && <div className="mt-0.5 text-[10px] leading-snug text-market-sub">{sub}</div>}
+    </div>
+  )
+}
+
+/** 金额格式化：大额保留 2 位，小额显示更多小数位（经济微观账本用） */
+function fmtMoney(n: number) {
+  if (!Number.isFinite(n)) return '$0.00'
+  if (Math.abs(n) >= 1000) return `$${n.toLocaleString('zh-CN', { maximumFractionDigits: 2 })}`
+  if (Math.abs(n) >= 1) return `$${n.toFixed(2)}`
+  return `$${n.toFixed(4)}`
+}
+
+function MiniStat({ label, value, tone }: { label: string; value: string; tone?: 'up' | 'down' | 'amber' }) {
+  return (
+    <div className="rounded-lg bg-white/80 px-2.5 py-2 ring-1 ring-market-border/40">
+      <div className="text-[10px] text-market-sub">{label}</div>
+      <div
+        className={`mt-0.5 text-sm font-black tnum ${
+          tone === 'up' ? 'text-market-up' : tone === 'down' ? 'text-market-down' : tone === 'amber' ? 'text-amber-600' : 'text-market-text'
+        }`}
+      >
+        {value}
+      </div>
+    </div>
+  )
+}
+
+/** AI 经济三引擎 · 微观运行面板（需求 / 生产 / 账本） */
+function EconomyEngines({
+  demand,
+  production,
+  ledger,
+}: {
+  demand: DemandEngineState
+  production: ProductionEngineState
+  ledger: EconomicLedgerState
+}) {
+  const recentOrders = demand.orders.slice(0, 4)
+  const workers = production.workers.slice(0, 5)
+  const entries = ledger.entries.slice(0, 8)
+
+  return (
+    <div className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-market-border/60">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-base font-bold text-market-text">🏭 AI 经济三引擎 · 微观运行</h2>
+        <span className="text-[11px] text-market-sub">人类需求 → 订单竞争 → 生产 → 账本，三引擎联动驱动资本闭环</span>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* ① Demand Engine */}
+        <section className="rounded-xl border border-sky-200/70 bg-sky-50/40 p-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-sky-500 text-sm font-bold text-white">①</span>
+              <div>
+                <div className="text-sm font-bold text-market-text">Demand Engine</div>
+                <div className="text-[10px] text-market-sub">需求引擎</div>
+              </div>
+            </div>
+            <span className="text-[10px] font-semibold text-sky-600">需求 → 订单 → 竞争</span>
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <MiniStat label="累计需求" value={fmtMoney(demand.totalDemand)} />
+            <MiniStat label="累计成交" value={fmtMoney(demand.fulfilledValue)} tone="up" />
+          </div>
+
+          <div className="mt-3 space-y-1">
+            {DEMAND_CATEGORIES.map((c) => (
+              <div key={c} className="flex items-center gap-2 text-[10px]">
+                <span className="w-11 shrink-0 text-market-sub">
+                  {demandCategoryIcon(c)} {c}
+                </span>
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white">
+                  <div className="h-full rounded-full bg-sky-400" style={{ width: `${demand.categoryHeat[c]}%` }} />
+                </div>
+                <span className="w-6 text-right font-semibold text-market-text tnum">{demand.categoryHeat[c]}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3 space-y-1.5">
+            <div className="text-[10px] font-semibold text-market-sub">最近市场订单</div>
+            {recentOrders.length === 0 && <div className="text-[10px] text-market-sub">等待第一笔需求订单…</div>}
+            {recentOrders.map((o) => (
+              <div key={o.id} className="rounded-lg bg-white/85 px-2 py-1.5 ring-1 ring-market-border/50">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate text-[11px] font-semibold text-market-text">
+                    {demandCategoryIcon(o.category)} {o.title}
+                  </span>
+                  <span
+                    className={`shrink-0 text-[10px] font-bold ${
+                      o.status === 'fulfilled' ? 'text-market-up' : o.status === 'competing' ? 'text-amber-600' : 'text-market-sub'
+                    }`}
+                  >
+                    {o.status === 'fulfilled' ? '✓ 成交' : o.status === 'competing' ? '⚔ 竞标中' : '待接单'}
+                  </span>
+                </div>
+                <div className="mt-0.5 truncate text-[10px] text-market-sub">
+                  {fmtMoney(o.value)} · {o.winnerName ? `中标 ${o.winnerName}` : '等待企业竞争'}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ② Production Engine */}
+        <section className="rounded-xl border border-violet-200/70 bg-violet-50/40 p-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-violet-500 text-sm font-bold text-white">②</span>
+              <div>
+                <div className="text-sm font-bold text-market-text">Production Engine</div>
+                <div className="text-[10px] text-market-sub">生产引擎</div>
+              </div>
+            </div>
+            <span className="text-[10px] font-semibold text-violet-600">Worker+Skill+算力+时间</span>
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <MiniStat label="AI Worker" value={`${production.workers.length}`} />
+            <MiniStat label="累计产出" value={fmtNumber(production.totalOutput, 0)} />
+            <MiniStat label="算力成本" value={fmtMoney(production.totalComputeCost)} tone="down" />
+            <MiniStat label="工资支出" value={fmtMoney(production.totalWage)} tone="down" />
+          </div>
+
+          <div className="mt-3 space-y-1.5">
+            <div className="text-[10px] font-semibold text-market-sub">AI Worker 生产单元</div>
+            {workers.length === 0 && <div className="text-[10px] text-market-sub">闭环启动后按持仓企业派生 Worker…</div>}
+            {workers.map((w) => (
+              <div key={w.id} className="rounded-lg bg-white/85 px-2 py-1.5 ring-1 ring-market-border/50">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate text-[11px] font-semibold text-market-text">{w.symbol}</span>
+                  <span className={`shrink-0 text-[10px] font-bold ${w.status === 'working' ? 'text-violet-600' : 'text-market-sub'}`}>
+                    {w.status === 'working' ? '● 生产中' : '○ 空闲'}
+                  </span>
+                </div>
+                <div className="mt-0.5 truncate text-[10px] text-market-sub">
+                  {w.skill} · {w.compute}
+                </div>
+                <div className="mt-0.5 flex items-center justify-between text-[10px] text-market-sub">
+                  <span>
+                    效率 <b className="text-violet-600 tnum">×{w.efficiency.toFixed(2)}</b>
+                  </span>
+                  <span>
+                    产出 <b className="text-market-text tnum">{w.output.toFixed(1)}</b>
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ③ Economic Ledger */}
+        <section className="rounded-xl border border-emerald-200/70 bg-emerald-50/40 p-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500 text-sm font-bold text-white">③</span>
+              <div>
+                <div className="text-sm font-bold text-market-text">Economic Ledger</div>
+                <div className="text-[10px] text-market-sub">经济账本</div>
+              </div>
+            </div>
+            <span className="text-[10px] font-semibold text-emerald-600">收入-成本-工资=利润</span>
+          </div>
+
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            <MiniStat label="收入" value={fmtMoney(ledger.revenue)} tone="up" />
+            <MiniStat label="成本" value={fmtMoney(ledger.cost)} tone="down" />
+            <MiniStat label="工资" value={fmtMoney(ledger.wage)} tone="down" />
+            <MiniStat label="利润" value={fmtMoney(ledger.profit)} tone="up" />
+            <MiniStat label="投资" value={fmtMoney(ledger.investment)} tone="amber" />
+            <MiniStat label="分红" value={fmtMoney(ledger.dividend)} tone="up" />
+          </div>
+
+          <div className="mt-3 space-y-1.5">
+            <div className="text-[10px] font-semibold text-market-sub">资金流水（复式记账）</div>
+            {entries.length === 0 && <div className="text-[10px] text-market-sub">等待第一笔资金流水…</div>}
+            {entries.map((e) => (
+              <div key={e.id} className="flex items-center justify-between gap-2 rounded-lg bg-white/85 px-2 py-1.5 ring-1 ring-market-border/50">
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <span className="text-[12px]">{LEDGER_ICONS[e.type]}</span>
+                  <span className="truncate text-[10px] text-market-sub">{LEDGER_LABELS[e.type]} · {e.note}</span>
+                </div>
+                <span className={`shrink-0 text-[11px] font-bold tnum ${e.amount >= 0 ? 'text-market-up' : 'text-market-down'}`}>
+                  {e.amount >= 0 ? '+' : ''}
+                  {fmtMoney(e.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
     </div>
   )
 }
