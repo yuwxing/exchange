@@ -30,3 +30,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Python
+__pycache__/
+*.pyc
+*.db
+
+# 任务市场运行时（证书含私钥、数据、交付物）
+scripts/certs/
+scripts/data/
+scripts/deliveries/
+
+# fetch 缓存
+.fetch/
