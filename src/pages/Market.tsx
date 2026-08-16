@@ -136,22 +136,22 @@ export default function Market() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <div className="text-right">
               <div className="text-[10px] text-market-sub">飞轮指数</div>
-              <div className="tnum text-lg font-bold text-violet-600">{flywheelIndex(flywheel)}</div>
+              <div className="tnum text-base font-bold text-violet-600 sm:text-lg">{flywheelIndex(flywheel)}</div>
             </div>
             <div className="text-right">
               <div className="text-[10px] text-market-sub">转速</div>
-              <div className="tnum text-lg font-bold text-market-text">{flywheel.speed}</div>
+              <div className="tnum text-base font-bold text-market-text sm:text-lg">{flywheel.speed}</div>
             </div>
             <div className="text-right">
               <div className="text-[10px] text-market-sub">总估值</div>
-              <div className="tnum text-lg font-bold text-market-up">${fmtNumber(flywheel.totalValuation)}</div>
+              <div className="tnum text-base font-bold text-market-up sm:text-lg">${fmtNumber(flywheel.totalValuation)}</div>
             </div>
             <div className="text-right">
               <div className="text-[10px] text-market-sub">总资本</div>
-              <div className="tnum text-lg font-bold text-market-text">${fmtNumber(flywheel.totalCapital)}</div>
+              <div className="tnum text-base font-bold text-market-text sm:text-lg">${fmtNumber(flywheel.totalCapital)}</div>
             </div>
             <button
               onClick={() => navigate('/flywheel')}

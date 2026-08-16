@@ -241,6 +241,61 @@ function FlywheelChart({ history }: { history: { t: string; speed: number; valua
   return <div ref={ref} style={{ height: 260 }} />
 }
 
+/** 移动端紧凑视图：转速条 + 8 节点 2 列卡片流（点击下钻） */
+function MobileFlywheel({ nodes, speed, onSelect }: { nodes: FlywheelNode[]; speed: number; onSelect: (id: FlywheelNodeId) => void }) {
+  return (
+    <div className="space-y-3">
+      {/* 转速条 */}
+      <div className="rounded-lg bg-market-bg/60 p-3">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-semibold text-market-text">⚡ 飞轮转速</span>
+          <span className="tnum font-bold text-market-primary">{speed}</span>
+        </div>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-market-border/70">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-market-primary to-violet-500 transition-all duration-700"
+            style={{ width: `${Math.min(100, Math.max(0, speed))}%` }}
+          />
+        </div>
+      </div>
+
+      {/* 8 节点 2 列卡片流 */}
+      <div className="grid grid-cols-2 gap-2">
+        {FLYWHEEL_NODE_DEFS.map((d) => {
+          const node = nodes.find((n) => n.id === d.id)
+          const color = NODE_COLORS[d.id]
+          return (
+            <div
+              key={d.id}
+              onClick={() => onSelect(d.id)}
+              className="cursor-pointer rounded-xl border border-market-border/70 bg-market-bg/40 p-3 transition hover:border-market-primary/40 hover:bg-white"
+            >
+              <div className="flex items-center gap-1.5">
+                <span className="text-base">{d.icon}</span>
+                <span className="truncate text-xs font-semibold text-market-sub">{d.name}</span>
+              </div>
+              <div className="tnum mt-1 truncate text-lg font-bold" style={{ color }}>
+                {fmtCompact(node?.value ?? 0)}
+                <span className="ml-0.5 text-[10px] font-normal text-market-sub">{d.unit}</span>
+              </div>
+              <div className="tnum mt-0.5 text-[10px] text-market-sub">
+                {node && node.pct !== 0 ? (
+                  <span className={node.pct >= 0 ? 'text-market-up' : 'text-market-down'}>
+                    {node.pct >= 0 ? '+' : ''}
+                    {node.pct.toFixed(1)}% · Δ{fmtCompact(node?.delta ?? 0)}
+                  </span>
+                ) : (
+                  <span>—</span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function Flywheel() {
   const flywheel = useMarket((s) => s.flywheel)
   const [selected, setSelected] = useState<FlywheelNodeId | null>(null)
@@ -301,9 +356,17 @@ export default function Flywheel() {
       <div className="grid gap-4 lg:grid-cols-5">
         <div className="rounded-xl border border-market-border bg-white p-4 lg:col-span-3">
           <div className="mb-2 text-sm font-semibold text-market-text">🔄 飞轮运行图（8 节点实时 · 点击下钻）</div>
-          <RingFlywheel nodes={flywheel.nodes} speed={flywheel.speed} onSelect={setSelected} />
+          {/* 桌面：环形图 */}
+          <div className="hidden lg:block">
+            <RingFlywheel nodes={flywheel.nodes} speed={flywheel.speed} onSelect={setSelected} />
+          </div>
+          {/* 移动端：紧凑卡片流 */}
+          <div className="lg:hidden">
+            <MobileFlywheel nodes={flywheel.nodes} speed={flywheel.speed} onSelect={setSelected} />
+          </div>
         </div>
-        <div className="rounded-xl border border-market-border bg-white p-4 lg:col-span-2">
+        {/* 桌面：右侧明细列表 */}
+        <div className="hidden rounded-xl border border-market-border bg-white p-4 lg:col-span-2 lg:block">
           <div className="mb-3 text-sm font-semibold text-market-text">📋 节点明细</div>
           <div className="space-y-2">
             {FLYWHEEL_NODE_DEFS.map((d) => {
