@@ -11,5 +11,13 @@ export default defineConfig({
       usePolling: true,
       interval: 300,
     },
+    // 开发代理：/api → 本地任务市场后端（task_market_api.py :8000）
+    // 生产：前端 Cloudflare Pages + 后端容器 nginx 反代，或设置 VITE_TASK_API_BASE
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
   },
 })

@@ -10,6 +10,7 @@ const NAV = [
   { to: '/index', label: '指数中心', icon: '🧮' },
   { to: '/intelligence', label: 'AI 智能', icon: '🤖' },
   { to: '/weg', label: 'AI 劳动力', icon: '🧑‍💻' },
+  { to: '/flywheel', label: '经济飞轮', icon: '🔄' },
   { to: '/task-market', label: '任务市场', icon: '🧩' },
   { to: '/portfolio', label: '我的资产', icon: '💼' },
   { to: '/news', label: '新闻事件', icon: '📰' },

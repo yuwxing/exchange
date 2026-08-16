@@ -9,6 +9,7 @@ import WhaleFeed from '../components/WhaleFeed'
 import SectorHeat from '../components/SectorHeat'
 import AiGdp from '../components/AiGdp'
 import { fmtNumber } from '../utils/format'
+import { flywheelIndex } from '../ai/flywheel'
 
 export default function Market() {
   const quotes = useMarket((s) => s.quotes)
@@ -20,6 +21,7 @@ export default function Market() {
   const sentiment = useMarket((s) => s.sentiment)
   const whaleFlows = useMarket((s) => s.whaleFlows)
   const capitalOs = useMarket((s) => s.capitalOs)
+  const flywheel = useMarket((s) => s.flywheel)
   const [activeSector, setActiveSector] = useState<string>('all')
   const navigate = useNavigate()
 
@@ -106,6 +108,58 @@ export default function Market() {
           >
             {capitalOs?.active ? '进入闭环驾驶舱 →' : '启动 AI Capital OS →'}
           </button>
+        </div>
+      </section>
+
+      {/* AI 产业经济飞轮 · 快捷入口 */}
+      <section className="rounded-xl bg-gradient-to-r from-violet-500/10 via-sky-500/5 to-transparent p-4 ring-1 ring-violet-400/30">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-sky-500 text-xl text-white shadow">
+              🔄
+            </span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-black text-market-text">AI 产业经济飞轮</span>
+                <span className="rounded bg-violet-500/15 px-1.5 py-0.5 text-[10px] font-bold text-violet-600 ring-1 ring-violet-400/40">
+                  8 节点闭环
+                </span>
+                {flywheel.active && (
+                  <span className="flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-bold text-emerald-600 ring-1 ring-emerald-400/30">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                    高速运转中
+                  </span>
+                )}
+              </div>
+              <p className="mt-0.5 truncate text-xs text-market-sub">
+                资本 → 企业 → IPO → Workforce → 生产 → 收入 → 利润 → 估值 → 资本增长 → 循环
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <div className="text-[10px] text-market-sub">飞轮指数</div>
+              <div className="tnum text-lg font-bold text-violet-600">{flywheelIndex(flywheel)}</div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] text-market-sub">转速</div>
+              <div className="tnum text-lg font-bold text-market-text">{flywheel.speed}</div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] text-market-sub">总估值</div>
+              <div className="tnum text-lg font-bold text-market-up">${fmtNumber(flywheel.totalValuation)}</div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] text-market-sub">总资本</div>
+              <div className="tnum text-lg font-bold text-market-text">${fmtNumber(flywheel.totalCapital)}</div>
+            </div>
+            <button
+              onClick={() => navigate('/flywheel')}
+              className="shrink-0 rounded-lg bg-violet-500 px-4 py-2 text-sm font-bold text-white shadow-sm transition-colors hover:bg-violet-600"
+            >
+              查看飞轮 →
+            </button>
+          </div>
         </div>
       </section>
 

@@ -16,6 +16,7 @@ import type {
   DailyReport,
   DemandEngineState,
   EconomicLedgerState,
+  FlywheelState,
   IndexValue,
   MarketEngineRun,
   NewsEvent,
@@ -68,6 +69,7 @@ import { initDemandEngine } from '../ai/demandEngine'
 import { initProductionEngine } from '../ai/productionEngine'
 import { initLedger } from '../ai/economicLedger'
 import { runEconomyTick } from '../ai/economy'
+import { initFlywheel, runFlywheelTick } from '../ai/flywheel'
 
 export const INITIAL_CASH = 100000
 export const INITIAL_WEG = 10000
@@ -130,6 +132,7 @@ type MarketState = {
   attributionTick: number
   engineRun: MarketEngineRun | null
   gdp: AiGdp
+  flywheel: FlywheelState
   tick: () => void
   fireNews: () => NewsEvent | null
   publishNews: (id: string) => void
@@ -389,6 +392,7 @@ export const useMarket = create<MarketState>()(
         attributionTick: 0,
         engineRun: null,
         gdp: initAiGdp(),
+        flywheel: initFlywheel(),
 
         allAssets: () => [...ASSETS, ...get().extraAssets],
 
@@ -660,6 +664,22 @@ export const useMarket = create<MarketState>()(
             account = r.account
           }
 
+          // ---- V6 · AI 产业经济飞轮：聚合三引擎 + 行情 → 8 节点视图层 ----
+          const flywheel = runFlywheelTick(st.flywheel, {
+            capitalOs,
+            production,
+            ledger,
+            demand,
+            account,
+            quotes: nextQuotes,
+            assets: all,
+            extraAssets: st.extraAssets,
+            candidates: st.candidates,
+            listings: st.listings,
+            eco: indicesEco,
+            sentiment,
+          })
+
           set({
             quotes: nextQuotes,
             sectors: nextSectors,
@@ -688,6 +708,7 @@ export const useMarket = create<MarketState>()(
             lastAttribution: recordAtt ? { ...st.lastAttribution, ...nextAttribution } : st.lastAttribution,
             attributionTick: attTick,
             gdp: updateAiGdp(st.gdp, indicesEco, sentiment.score, nextSectors, SECTORS.map((s) => s.id)),
+            flywheel,
           })
         },
 

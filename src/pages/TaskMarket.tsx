@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTaskMarket, TASK_TYPE_META, type MarketBid, type MarketTask, type TaskType } from '../store/taskMarket'
 import { fmtNumber } from '../utils/format'
+import RemoteTaskMarketPanel from '../components/RemoteTaskMarket'
 
 const STATUS_META: Record<MarketTask['status'], { label: string; cls: string }> = {
   open: { label: '待竞标', cls: 'bg-sky-500/10 text-sky-600 ring-sky-400/40' },
@@ -14,6 +15,7 @@ const fmtMoney = (n: number) => `¥${fmtNumber(n)}`
 
 export default function TaskMarket() {
   const { providers, tasks, bids, publishTask, runMarket, reset } = useTaskMarket()
+  const [mode, setMode] = useState<'sim' | 'api'>('sim')
   const [title, setTitle] = useState('')
   const [desc, setDesc] = useState('')
   const [type, setType] = useState<TaskType>('research')
@@ -96,6 +98,26 @@ export default function TaskMarket() {
         <div className="rounded-lg bg-market-text px-4 py-2.5 text-sm font-medium text-white shadow-md">{toast}</div>
       )}
 
+      {/* 模式切换：模拟市场（本地引擎） / 真实 API 市场（FastAPI + DeepSeek） */}
+      <div className="flex gap-2 rounded-xl bg-white p-1.5 shadow-sm ring-1 ring-market-border">
+        <button
+          onClick={() => setMode('sim')}
+          className={`flex-1 rounded-lg px-4 py-2 text-sm font-bold transition-colors ${mode === 'sim' ? 'bg-indigo-500 text-white shadow-sm' : 'text-market-sub hover:text-market-text'}`}
+        >
+          🧪 模拟市场（本地引擎）
+        </button>
+        <button
+          onClick={() => setMode('api')}
+          className={`flex-1 rounded-lg px-4 py-2 text-sm font-bold transition-colors ${mode === 'api' ? 'bg-indigo-500 text-white shadow-sm' : 'text-market-sub hover:text-market-text'}`}
+        >
+          🔌 真实 API 市场（DeepSeek 执行）
+        </button>
+      </div>
+
+      {mode === 'api' ? (
+        <RemoteTaskMarketPanel />
+      ) : (
+      <>
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         {/* 左侧：发布任务 */}
         <section className="space-y-4 lg:col-span-1">
@@ -246,6 +268,8 @@ export default function TaskMarket() {
           )}
         </section>
       </div>
+      </>
+      )}
     </div>
   )
 }

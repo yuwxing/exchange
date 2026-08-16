@@ -648,3 +648,41 @@ export type EconomicLedgerState = {
   investment: number // 累计再投资（留存）
   dividend: number // 累计分红（回流资本）
 }
+
+/** ============ V6 · AI 产业经济飞轮（Flywheel） ============ */
+
+/** 飞轮 8 节点（AI资本 → AI企业 → AI IPO → AI Workforce → Agent生产 → AI收入 → AI利润 → 企业估值） */
+export type FlywheelNodeId =
+  | 'capital' //  AI资本
+  | 'company' //  AI企业
+  | 'ipo' //     AI IPO
+  | 'workforce' // AI Workforce
+  | 'production' // Agent 生产
+  | 'revenue' //  AI 收入
+  | 'profit' //   AI 利润
+  | 'valuation' // 企业估值
+
+/** 飞轮节点实时指标 */
+export type FlywheelNode = {
+  id: FlywheelNodeId
+  name: string
+  icon: string
+  value: number // 当前指标值（模拟）
+  prev: number // 上期值
+  delta: number // 本 tick 增量
+  pct: number // 环比增速 %（0 表示无上期）
+  unit: string // 单位（$ / 家 / 个 / 任务 / %）
+  desc: string
+}
+
+/** 飞轮运行态（视图/聚合层：由底层三引擎 + 行情派生，不另造数据） */
+export type FlywheelState = {
+  active: boolean
+  nodes: FlywheelNode[]
+  speed: number // 飞轮转速 0-100（经济活跃度）
+  totalValuation: number // 企业总估值（$）
+  totalCapital: number // 资本总规模（$）
+  cycles: number // 循环次数（累计）
+  lastTickAt: number
+  history: { t: string; speed: number; valuation: number; capital: number }[] // 运行快照
+}

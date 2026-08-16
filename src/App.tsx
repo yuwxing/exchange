@@ -11,6 +11,7 @@ const AssetDetail = lazy(() => import('./pages/AssetDetail'))
 const AIIndex = lazy(() => import('./pages/AIIndex'))
 const Intelligence = lazy(() => import('./pages/Intelligence'))
 const WegEconomy = lazy(() => import('./pages/WegEconomy'))
+const Flywheel = lazy(() => import('./pages/Flywheel'))
 const TaskMarket = lazy(() => import('./pages/TaskMarket'))
 const Portfolio = lazy(() => import('./pages/Portfolio'))
 const News = lazy(() => import('./pages/News'))
@@ -62,6 +63,7 @@ function AppInner() {
             <Route path="/index" element={<AIIndex />} />
             <Route path="/intelligence" element={<Intelligence />} />
             <Route path="/weg" element={<WegEconomy />} />
+            <Route path="/flywheel" element={<Flywheel />} />
             <Route path="/task-market" element={<TaskMarket />} />
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/news" element={<News />} />
