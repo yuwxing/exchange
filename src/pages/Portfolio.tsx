@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useMarket } from '../store/market'
+import { useEconomy } from '../store/economy'
 import { fmtNumber, isUp } from '../utils/format'
 
 export default function Portfolio() {
@@ -11,6 +12,10 @@ export default function Portfolio() {
   const openOrders = useMarket((s) => s.openOrders)
   const closeContract = useMarket((s) => s.closeContract)
   const cancelOrder = useMarket((s) => s.cancelOrder)
+  const economyPortfolio = useEconomy((s) => s.portfolio)
+  const economyCompanies = useEconomy((s) => s.companies)
+  const economyWorkers = useEconomy((s) => s.workers)
+  const economyWeg = useEconomy((s) => s.weg)
   const assets = allAssets()
 
   const holdingsDetail = account.holdings.map((h) => {
@@ -120,6 +125,78 @@ export default function Portfolio() {
           </div>
         </div>
       </div>
+
+      <section className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-market-border/60">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-base font-bold text-market-text">AI 经济组合</h2>
+            <p className="mt-0.5 text-xs text-market-sub">
+              EconomyState 统一账本 · DSU / WEG / AI Company / AI Worker
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Link to="/companies" className="rounded-lg bg-market-bg px-3 py-1.5 text-xs font-semibold text-market-text hover:bg-market-primary/10 hover:text-market-primary">
+              企业交易
+            </Link>
+            <Link to="/workers" className="rounded-lg bg-market-bg px-3 py-1.5 text-xs font-semibold text-market-text hover:bg-market-primary/10 hover:text-market-primary">
+              Worker 市场
+            </Link>
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="rounded-lg bg-market-bg p-3">
+            <div className="text-xs text-market-sub">AI 经济总资产</div>
+            <div className="mt-1 text-xl font-bold text-market-text tnum">{fmtNumber(economyPortfolio.totalAssets)} DSU</div>
+            <div className={`text-xs font-semibold ${economyPortfolio.totalPnl >= 0 ? 'text-market-up' : 'text-market-down'}`}>
+              {economyPortfolio.totalPnl >= 0 ? '+' : ''}{fmtNumber(economyPortfolio.totalPnl)} PnL
+            </div>
+          </div>
+          <div className="rounded-lg bg-market-bg p-3">
+            <div className="text-xs text-market-sub">DSU 可用余额</div>
+            <div className="mt-1 text-xl font-bold text-market-text tnum">{fmtNumber(economyPortfolio.dsuBalance)} DSU</div>
+            <div className="text-xs text-market-sub">已投资 {fmtNumber(economyPortfolio.investedDsu)} DSU</div>
+          </div>
+          <div className="rounded-lg bg-market-bg p-3">
+            <div className="text-xs text-market-sub">WEG 生态资产</div>
+            <div className="mt-1 text-xl font-bold text-market-primary tnum">{fmtNumber(economyPortfolio.wegBalance, 0)} WEG</div>
+            <div className="text-xs text-market-sub">现价 {fmtNumber(economyWeg.price, 2)} DSU</div>
+          </div>
+          <div className="rounded-lg bg-market-bg p-3">
+            <div className="text-xs text-market-sub">企业 / Worker 仓位</div>
+            <div className="mt-1 text-xl font-bold text-market-text tnum">
+              {Object.keys(economyPortfolio.companyPositions).length} / {economyPortfolio.workerRoster.length}
+            </div>
+            <div className="text-xs text-market-sub">
+              收入 +{fmtNumber(economyPortfolio.workerIncome + economyPortfolio.companyIncome)} DSU
+            </div>
+          </div>
+        </div>
+        {Object.keys(economyPortfolio.companyPositions).length > 0 && (
+          <div className="mt-4 border-t border-market-border pt-3">
+            <div className="mb-2 text-xs font-semibold text-market-sub">AI Company 持仓</div>
+            <div className="flex flex-wrap gap-2">
+              {Object.values(economyPortfolio.companyPositions).map((position) => {
+                const company = economyCompanies.find((item) => item.symbol === position.symbol)
+                return (
+                  <div key={position.symbol} className="rounded-lg bg-market-bg px-3 py-2 text-xs">
+                    <span className="font-bold text-market-text">{position.symbol}</span>
+                    <span className="ml-2 text-market-sub">{position.shares} 股 · 成本 {fmtNumber(position.avgCost)} DSU</span>
+                    {company && <span className={`ml-2 font-semibold ${company.changePct >= 0 ? 'text-market-up' : 'text-market-down'}`}>{company.changePct >= 0 ? '+' : ''}{(company.changePct * 100).toFixed(2)}%</span>}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+        {economyPortfolio.workerRoster.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {economyPortfolio.workerRoster.map((workerId) => {
+              const worker = economyWorkers.find((item) => item.id === workerId)
+              return worker ? <span key={workerId} className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">{worker.name} · {fmtNumber(worker.dailyOutput)} DSU/day</span> : null
+            })}
+          </div>
+        )}
+      </section>
 
       <div className="rounded-xl bg-white shadow-sm ring-1 ring-market-border/60">
         <div className="border-b border-market-border px-5 py-3">

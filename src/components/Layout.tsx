@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useMarket } from '../store/market'
+import { useEconomy } from '../store/economy'
 import { fmtNumber } from '../utils/format'
 
 const NAV = [
@@ -9,6 +10,10 @@ const NAV = [
   { to: '/assets', label: '资产市场', icon: '🏛️' },
   { to: '/index', label: '指数中心', icon: '🧮' },
   { to: '/intelligence', label: 'AI 智能', icon: '🤖' },
+  { to: '/dsu', label: 'DSU', icon: '⚖️' },
+  { to: '/companies', label: 'AI 企业', icon: '🏢' },
+  { to: '/workers', label: 'Worker 市场', icon: '🤖' },
+  { to: '/capital-flow', label: '资本流向', icon: '🔄' },
   { to: '/weg', label: 'AI 劳动力', icon: '🧑‍💻' },
   { to: '/flywheel', label: '经济飞轮', icon: '🔄' },
   { to: '/task-market', label: '任务市场', icon: '🧩' },
@@ -18,13 +23,17 @@ const NAV = [
 
 export default function Layout() {
   const tick = useMarket((s) => s.tick)
+  const economyTick = useEconomy((s) => s.tick)
   const account = useMarket((s) => s.account)
   const navigate = useNavigate()
 
   useEffect(() => {
-    const id = setInterval(tick, 2500)
+    const id = setInterval(() => {
+      tick()
+      economyTick()
+    }, 2500)
     return () => clearInterval(id)
-  }, [tick])
+  }, [tick, economyTick])
 
   return (
     <div className="min-h-screen bg-market-bg">
@@ -36,9 +45,9 @@ export default function Layout() {
                 AX
               </div>
               <div>
-                <div className="text-base font-bold leading-tight text-market-text">AI Exchange</div>
+                <div className="text-base font-bold leading-tight text-market-text">AI 经济交易市场</div>
                 <div className="text-[10px] leading-tight text-market-sub">
-                  全球 AI 经济模拟交易市场
+                  AI Exchange · Economy Terminal
                 </div>
               </div>
             </div>

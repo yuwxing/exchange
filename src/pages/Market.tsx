@@ -8,6 +8,9 @@ import SentimentGauge from '../components/SentimentGauge'
 import WhaleFeed from '../components/WhaleFeed'
 import SectorHeat from '../components/SectorHeat'
 import AiGdp from '../components/AiGdp'
+import AiEconomyDashboard from '../components/AiEconomyDashboard'
+import EconomicEvents from '../components/EconomicEvents'
+import EconomyRanking from '../components/EconomyRanking'
 import { fmtNumber } from '../utils/format'
 import { flywheelIndex } from '../ai/flywheel'
 
@@ -41,12 +44,12 @@ export default function Market() {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5">
-              <span className="text-3xl font-black tracking-tight">AI Exchange</span>
+              <span className="text-3xl font-black tracking-tight">AI 经济交易市场</span>
               <span className="rounded bg-white/20 px-2 py-0.5 text-xs font-bold text-white ring-1 ring-white/30">
                 模拟
               </span>
             </div>
-            <p className="mt-1.5 text-lg font-medium text-white/95">全球 AI 经济模拟交易市场</p>
+            <p className="mt-1.5 text-lg font-medium text-white/95">AI Exchange · Economy Terminal</p>
             <p className="mt-1 max-w-2xl text-sm text-white/75">
               模型 · Agent · Skill · MCP · 应用 · 机器人 · 数据 · 算力 · 协议 —— 统一资产化、指数化、交易化的教育模拟平台
             </p>
@@ -161,6 +164,14 @@ export default function Market() {
             </button>
           </div>
         </div>
+      </section>
+
+      {/* AI 经济统一终端：四引擎共享 EconomyState */}
+      <AiEconomyDashboard />
+
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <EconomicEvents />
+        <EconomyRanking />
       </section>
 
       <IndexPanel />

@@ -15,6 +15,10 @@ const Flywheel = lazy(() => import('./pages/Flywheel'))
 const TaskMarket = lazy(() => import('./pages/TaskMarket'))
 const Portfolio = lazy(() => import('./pages/Portfolio'))
 const News = lazy(() => import('./pages/News'))
+const DsuPage = lazy(() => import('./pages/DsuPage'))
+const CompaniesPage = lazy(() => import('./pages/CompaniesPage'))
+const WorkersPage = lazy(() => import('./pages/WorkersPage'))
+const CapitalFlowPage = lazy(() => import('./pages/CapitalFlowPage'))
 
 function PageLoading() {
   return <div className="py-24 text-center text-sm text-market-sub">加载中…</div>
@@ -67,6 +71,10 @@ function AppInner() {
             <Route path="/task-market" element={<TaskMarket />} />
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/news" element={<News />} />
+            <Route path="/dsu" element={<DsuPage />} />
+            <Route path="/companies" element={<CompaniesPage />} />
+            <Route path="/workers" element={<WorkersPage />} />
+            <Route path="/capital-flow" element={<CapitalFlowPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
